@@ -1,5 +1,6 @@
 const db = require('../db/database');
 const { v4: uuidv4 } = require('uuid');
+const { PDFParse } = require('pdf-parse');
 
 class RagEngine {
     constructor() {
@@ -10,42 +11,30 @@ class RagEngine {
         ]);
     }
 
-    extractTextFromBuffer(filename, buffer) {
+    async extractTextFromBuffer(filename, buffer) {
         if (!buffer || buffer.length === 0) return '';
         const ext = filename.split('.').pop().toLowerCase();
 
-        if (['txt', 'md', 'json', 'csv', 'js', 'ts', 'py', 'java', 'html', 'css', 'yaml', 'yml'].includes(ext)) {
-            return buffer.toString('utf-8');
-        }
-
+        // 1. PDF Parsing via pdf-parse
         if (ext === 'pdf') {
-            // Robust lightweight ASCII/Unicode text stream extractor for PDFs
-            const raw = buffer.toString('binary');
-            const textParts = [];
-            
-            // Extract text enclosed in parentheses (standard PDF text strings: (Hello World) Tj)
-            const matches = raw.match(/\(([^)]+)\)\s*(?:Tj|TJ|'|")/g);
-            if (matches) {
-                matches.forEach(m => {
-                    const clean = m.replace(/[()]/g, '').trim();
-                    if (clean.length > 1 && !clean.match(/^[\x00-\x1F]+$/)) {
-                        textParts.push(clean);
-                    }
-                });
-            }
-
-            // Also fallback to printable ASCII runs if stream was encoded
-            if (textParts.length < 5) {
-                const asciiMatches = raw.match(/[a-zA-Z0-9.,;:!?'"()\s-]{4,}/g);
-                if (asciiMatches) {
-                    textParts.push(...asciiMatches.filter(s => s.trim().length > 3));
+            try {
+                const parser = new PDFParse({ data: buffer });
+                const result = await parser.getText();
+                const text = (result && (result.text || (typeof result === 'string' ? result : ''))) || '';
+                if (text.trim().length > 0) {
+                    return text;
                 }
+            } catch (err) {
+                console.error(`[RAG Engine] PDF parser warning for '${filename}':`, err.message);
             }
-
-            return textParts.join(' ').replace(/\s+/g, ' ').trim();
         }
 
-        return buffer.toString('utf-8');
+        // 2. Plain Text / Code / Markdown / JSON / CSV / HTML / Configs
+        try {
+            return buffer.toString('utf-8');
+        } catch {
+            return buffer.toString('latin1');
+        }
     }
 
     chunkText(text, chunkSize = 500, overlap = 80) {
@@ -53,7 +42,7 @@ class RagEngine {
         const cleanText = text.replace(/\r\n/g, '\n').trim();
         const chunks = [];
 
-        // Try paragraph-based splitting first
+        // Paragraph-based splitting first
         const paragraphs = cleanText.split(/\n{2,}/);
         let currentChunk = '';
 
@@ -85,7 +74,7 @@ class RagEngine {
     }
 
     async indexDocument(docId, filename, buffer) {
-        const text = this.extractTextFromBuffer(filename, buffer);
+        const text = await this.extractTextFromBuffer(filename, buffer);
         if (!text || text.trim().length === 0) {
             return { success: false, chunkCount: 0, message: "No extractable text found in file." };
         }
@@ -107,7 +96,7 @@ class RagEngine {
                 });
                 stmt.finalize((err) => {
                     if (err) return reject(err);
-                    console.log(`[RAG Engine] Indexed ${chunks.length} chunks for '${filename}'`);
+                    console.log(`[RAG Engine] Successfully indexed ${chunks.length} chunks for '${filename}' (${text.length} chars)`);
                     resolve({ success: true, chunkCount: chunks.length, totalCharacters: text.length });
                 });
             });
@@ -119,14 +108,15 @@ class RagEngine {
             .toLowerCase()
             .replace(/[^a-z0-9\s_-]/g, ' ')
             .split(/\s+/)
-            .filter(t => t.length > 1 && !this.stopWords.has(t));
+            .filter(t => t.length > 0 && !this.stopWords.has(t));
     }
 
     async searchChunks(query, docId = null, topK = 4) {
-        const queryTokens = this.tokenize(query);
-        if (queryTokens.length === 0) {
-            return [];
-        }
+        const queryClean = (query || '').trim();
+        if (!queryClean) return [];
+
+        const queryTokens = this.tokenize(queryClean);
+        const queryLower = queryClean.toLowerCase();
 
         return new Promise((resolve, reject) => {
             let sql = `SELECT id, doc_id, filename, chunk_index, content FROM document_chunks`;
@@ -142,33 +132,46 @@ class RagEngine {
                 if (!rows || rows.length === 0) return resolve([]);
 
                 const scored = rows.map(chunk => {
-                    const contentLower = chunk.content.toLowerCase();
+                    const contentLower = (chunk.content || '').toLowerCase();
+                    const filenameLower = (chunk.filename || '').toLowerCase();
                     const chunkTokens = this.tokenize(chunk.content);
                     const chunkTokenSet = new Set(chunkTokens);
+                    const fnTokens = this.tokenize(chunk.filename);
+                    const fnTokenSet = new Set(fnTokens);
 
                     let score = 0;
                     let matches = 0;
 
-                    // 1. Exact phrase bonus
-                    if (contentLower.includes(query.toLowerCase().trim())) {
-                        score += 30;
+                    // 1. Exact phrase match in content
+                    if (contentLower.includes(queryLower)) {
+                        score += 40;
+                        matches += queryTokens.length;
                     }
 
-                    // 2. Token overlap & frequency
+                    // 2. Token overlap in content
                     queryTokens.forEach(token => {
                         if (chunkTokenSet.has(token)) {
                             matches++;
-                            // Count occurrences
                             const count = (contentLower.match(new RegExp('\\b' + token + '\\b', 'g')) || []).length;
-                            score += 10 + Math.min(count * 3, 15);
+                            score += 15 + Math.min(count * 4, 20);
+                        } else if (contentLower.includes(token)) {
+                            // Substring match in content
+                            matches += 0.5;
+                            score += 10;
+                        }
+
+                        // 3. Filename match bonus
+                        if (fnTokenSet.has(token) || filenameLower.includes(token)) {
+                            score += 25;
+                            matches = Math.max(matches, 1);
                         }
                     });
 
-                    // 3. Proximity bonus
-                    const matchRatio = matches / queryTokens.length;
-                    score += Math.round(matchRatio * 40);
+                    // 4. Coverage ratio bonus
+                    const matchRatio = queryTokens.length > 0 ? Math.min(1, matches / queryTokens.length) : 0;
+                    score += Math.round(matchRatio * 30);
 
-                    const confidence = Math.min(99, Math.max(15, Math.round(score)));
+                    const confidence = Math.min(99, Math.max(25, Math.round(score)));
 
                     return {
                         id: chunk.id,
@@ -183,7 +186,7 @@ class RagEngine {
 
                 // Filter out non-matching chunks and sort descending
                 const results = scored
-                    .filter(c => c.score > 12)
+                    .filter(c => c.score >= 10)
                     .sort((a, b) => b.score - a.score)
                     .slice(0, topK);
 

@@ -153,9 +153,12 @@ class DriveManager {
             }, { responseType: 'stream' });
 
             return new Promise((resolve, reject) => {
-                let data = '';
-                response.data.on('data', chunk => data += chunk);
-                response.data.on('end', () => resolve({ success: true, content: data }));
+                const chunks = [];
+                response.data.on('data', chunk => chunks.push(chunk));
+                response.data.on('end', () => {
+                    const buffer = Buffer.concat(chunks);
+                    resolve({ success: true, buffer, content: buffer.toString('utf-8') });
+                });
                 response.data.on('error', err => reject({ success: false, error: err.message }));
             });
         } catch (error) {
