@@ -1,0 +1,19 @@
+{
+  "watch": [
+    "src/",
+    "public/",
+    ".env"
+  ],
+  "ext": "js,json,html,css",
+  "ignore": [
+    "data.db*",
+    "drive_token.json",
+    "node_modules/",
+    ".git/",
+    "test*.js"
+  ],
+  "delay": "250ms",
+  "env": {
+    "NODE_ENV": "development"
+  }
+}
