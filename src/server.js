@@ -9,10 +9,38 @@ const Router = require('./routing/Router');
 const BenchmarkLab = require('./benchmarks/BenchmarkLab');
 const driveManager = require('./drive/DriveManager');
 const ragEngine = require('./rag/RagEngine');
+const authManager = require('./auth/AuthManager');
 
 const app = express();
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// Helper to authenticate requests via Bearer Token / x-auth-token / API Key
+async function getAuthUser(req) {
+    try {
+        const authHeader = req.headers['authorization'];
+        let token = null;
+        if (authHeader && authHeader.startsWith('Bearer ')) {
+            token = authHeader.substring(7).trim();
+        } else if (req.headers['x-auth-token']) {
+            token = req.headers['x-auth-token'];
+        } else if (req.query && req.query.token) {
+            token = req.query.token;
+        }
+        
+        if (token) {
+            if (token.startsWith('sk-omni-')) {
+                const user = await authManager.getUserByApiKey(token);
+                if (user) return user;
+            }
+            const user = await authManager.validateSession(token);
+            if (user) return user;
+        }
+    } catch (err) {
+        console.error("Auth verification error:", err.message);
+    }
+    return null;
+}
 
 // 1. Root '/' defaults to the Landing Page
 app.get('/', (req, res) => {
@@ -563,43 +591,277 @@ app.delete('/api/teach/personas/:id', (req, res) => {
 });
 
 // -------------------------------------------------------------
+// USER AUTHENTICATION & GOOGLE DRIVE OAUTH
+// -------------------------------------------------------------
+
+// 1. Register local account
+app.post('/api/auth/register', async (req, res) => {
+    try {
+        const { username, email, password, name } = req.body;
+        const result = await authManager.register({ username, email, password, name });
+        res.json({ success: true, user: result.user, token: result.token });
+    } catch (err) {
+        res.status(400).json({ error: err.message });
+    }
+});
+
+// 2. Login with username or email
+app.post('/api/auth/login', async (req, res) => {
+    try {
+        const { login, password } = req.body;
+        const result = await authManager.login({ login, password });
+        res.json({ success: true, user: result.user, token: result.token });
+    } catch (err) {
+        res.status(400).json({ error: err.message });
+    }
+});
+
+// 3. Logout
+app.post('/api/auth/logout', async (req, res) => {
+    try {
+        const authHeader = req.headers['authorization'];
+        const token = (authHeader && authHeader.startsWith('Bearer ')) ? authHeader.substring(7).trim() : req.headers['x-auth-token'];
+        if (token) {
+            await authManager.logout(token);
+        }
+        res.json({ success: true, message: "Logged out successfully" });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// 4. Get Current User & Auth/Drive State
+app.get('/api/auth/me', async (req, res) => {
+    try {
+        const user = await getAuthUser(req);
+        if (!user) {
+            return res.json({ 
+                authenticated: false, 
+                user: null, 
+                drive: { 
+                    isConnected: driveManager.isConnected, 
+                    hasCredentials: !!process.env.GOOGLE_CLIENT_ID,
+                    account: driveManager.accountInfo
+                }
+            });
+        }
+        res.json({ 
+            authenticated: true, 
+            user, 
+            drive: { 
+                isConnected: !!user.google_connected || driveManager.isConnected,
+                hasCredentials: !!process.env.GOOGLE_CLIENT_ID,
+                account: user.google_email ? { email: user.google_email, name: user.name, picture: user.avatar_url } : driveManager.accountInfo
+            }
+        });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// 5. Google OAuth Login / Connect URL
+app.get(['/api/auth/google/url', '/api/drive/auth'], (req, res) => {
+    if (!process.env.GOOGLE_CLIENT_ID) {
+        if (req.headers.accept && req.headers.accept.includes('application/json')) {
+            return res.status(400).json({ error: "Google Client ID not configured in .env" });
+        }
+        return res.status(400).send("Google Client ID not configured in .env");
+    }
+    const url = driveManager.getAuthUrl();
+    if (req.headers.accept && req.headers.accept.includes('application/json')) {
+        return res.json({ url });
+    }
+    res.redirect(url);
+});
+
+// 6. Unified Google OAuth & Drive Callback Handler
+const handleGoogleOAuthCallback = async (req, res) => {
+    const code = req.query.code;
+    if (!code) {
+        return res.status(400).send("Authorization code missing from Google callback.");
+    }
+    try {
+        const authResult = await driveManager.authenticate(code);
+        if (!authResult.success) {
+            return res.status(400).send(`Google Authentication failed: ${authResult.error || 'Unknown error'}`);
+        }
+
+        const profile = authResult.profile || {};
+        const googleResult = await authManager.handleGoogleAuth({
+            googleId: profile.id || ('g_' + uuidv4().slice(0, 8)),
+            email: profile.email || 'user@gmail.com',
+            name: profile.name || 'Google User',
+            picture: profile.picture || '',
+            tokens: authResult.tokens
+        });
+
+        const userJson = JSON.stringify(googleResult.user);
+        const token = googleResult.token;
+
+        return res.send(`
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Connected with Google</title>
+                <style>
+                    body {
+                        background-color: #06090f;
+                        color: #f8fafc;
+                        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", sans-serif;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        min-height: 100vh;
+                        margin: 0;
+                        padding: 20px;
+                        box-sizing: border-box;
+                    }
+                    .card {
+                        background: #0f172a;
+                        border: 1px solid #1e293b;
+                        border-radius: 16px;
+                        padding: 36px 30px;
+                        max-width: 440px;
+                        width: 100%;
+                        text-align: center;
+                        box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+                    }
+                    .avatar {
+                        width: 72px;
+                        height: 72px;
+                        border-radius: 50%;
+                        border: 3px solid #6366f1;
+                        margin: 0 auto 16px;
+                        display: block;
+                        object-fit: cover;
+                    }
+                    .avatar-placeholder {
+                        width: 72px;
+                        height: 72px;
+                        border-radius: 50%;
+                        background: linear-gradient(135deg, #6366f1, #06b6d4);
+                        color: #fff;
+                        font-size: 2rem;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        margin: 0 auto 16px;
+                    }
+                    h2 { color: #10b981; font-size: 1.4rem; margin: 0 0 8px; }
+                    p { color: #94a3b8; font-size: 0.95rem; margin: 0 0 20px; line-height: 1.5; }
+                    .badge {
+                        display: inline-flex;
+                        align-items: center;
+                        gap: 6px;
+                        background: rgba(16, 185, 129, 0.12);
+                        color: #34d399;
+                        border: 1px solid rgba(16, 185, 129, 0.3);
+                        padding: 6px 14px;
+                        border-radius: 20px;
+                        font-size: 0.82rem;
+                        font-weight: 600;
+                        margin-bottom: 24px;
+                    }
+                    .btn {
+                        display: inline-block;
+                        background: #6366f1;
+                        color: white;
+                        padding: 10px 24px;
+                        border-radius: 8px;
+                        text-decoration: none;
+                        font-weight: 600;
+                        font-size: 0.9rem;
+                        transition: background 0.2s;
+                    }
+                    .btn:hover { background: #4f46e5; }
+                </style>
+            </head>
+            <body>
+                <div class="card">
+                    ${profile.picture ? `<img src="${profile.picture}" class="avatar" alt="Avatar">` : `<div class="avatar-placeholder">⚡</div>`}
+                    <h2>Google Account & Drive Connected!</h2>
+                    <p>Welcome, <strong>${profile.name || googleResult.user.username}</strong><br><span style="color:#38bdf8; font-size:0.85rem;">${profile.email || googleResult.user.email}</span></p>
+                    <div class="badge">☁️ Google Drive & Cloud Sync Active</div>
+                    <div>
+                        <a href="/app" class="btn">Return to Command Center</a>
+                    </div>
+                </div>
+                <script>
+                    const authData = {
+                        type: 'AUTH_SUCCESS',
+                        token: '${token}',
+                        user: ${userJson}
+                    };
+                    try {
+                        localStorage.setItem('omni_auth_token', '${token}');
+                        localStorage.setItem('omni_auth_user', JSON.stringify(authData.user));
+                        document.cookie = "omni_auth_token=${token}; path=/; max-age=2592000; SameSite=Lax";
+                    } catch (e) {}
+
+                    if (window.opener && !window.opener.closed) {
+                        try {
+                            window.opener.postMessage(authData, '*');
+                            setTimeout(() => window.close(), 1000);
+                        } catch (err) {
+                            setTimeout(() => { window.location.href = '/app'; }, 1200);
+                        }
+                    } else {
+                        setTimeout(() => { window.location.href = '/app'; }, 1200);
+                    }
+                </script>
+            </body>
+            </html>
+        `);
+    } catch (err) {
+        console.error("Google OAuth handler error:", err);
+        res.status(500).send("Authentication failed: " + err.message);
+    }
+};
+
+app.get('/api/auth/google/callback', handleGoogleOAuthCallback);
+app.get('/api/drive/callback', handleGoogleOAuthCallback);
+
+// 7. Regenerate personal API Key
+app.post('/api/auth/regenerate-api-key', async (req, res) => {
+    const user = await getAuthUser(req);
+    if (!user) return res.status(401).json({ error: "Authentication required" });
+    try {
+        const newKey = await authManager.regenerateApiKey(user.id);
+        res.json({ success: true, api_key: newKey });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// 8. Unlink Google Drive & Account
+app.post('/api/auth/unlink-google', async (req, res) => {
+    const user = await getAuthUser(req);
+    if (!user) return res.status(401).json({ error: "Authentication required" });
+    try {
+        await authManager.unlinkGoogle(user.id);
+        res.json({ success: true, message: "Google account unlinked successfully" });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// -------------------------------------------------------------
 // GOOGLE DRIVE & KNOWLEDGE (RAG)
 // -------------------------------------------------------------
 
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 25 * 1024 * 1024 } });
 
-app.get('/api/drive/status', (req, res) => {
+app.get('/api/drive/status', async (req, res) => {
+    const user = await getAuthUser(req);
+    const isConnected = (user && user.google_connected) || driveManager.isConnected;
+    const account = (user && user.google_email) ? { email: user.google_email, name: user.name, picture: user.avatar_url } : driveManager.accountInfo;
     res.json({ 
-        isConnected: driveManager.isConnected, 
-        hasCredentials: !!process.env.GOOGLE_CLIENT_ID 
+        isConnected, 
+        hasCredentials: !!process.env.GOOGLE_CLIENT_ID,
+        account
     });
-});
-
-app.get('/api/drive/auth', (req, res) => {
-    if (!process.env.GOOGLE_CLIENT_ID) {
-        return res.status(400).send("Google Client ID not configured in .env");
-    }
-    res.redirect(driveManager.getAuthUrl());
-});
-
-app.get('/api/auth/google/callback', async (req, res) => {
-    const code = req.query.code;
-    if (code) {
-        const success = await driveManager.authenticate(code);
-        if (success) {
-            return res.send(`
-                <html>
-                <body style="font-family:sans-serif; background:#0f172a; color:#f8fafc; display:flex; align-items:center; justify-content:center; height:100vh; margin:0;">
-                <div style="background:#1e293b; padding:40px; border-radius:12px; text-align:center; border:1px solid #334155;">
-                    <h2 style="color:#10b981; margin-top:0;">☁️ Google Drive Connected!</h2>
-                    <p style="color:#94a3b8;">Authentication complete. You can close this tab and return to Command Center.</p>
-                    <script>setTimeout(() => window.close(), 2500);</script>
-                </div>
-                </body></html>
-            `);
-        }
-    }
-    res.status(400).send("Authentication failed.");
 });
 
 app.post('/api/knowledge/upload', upload.single('document'), async (req, res) => {

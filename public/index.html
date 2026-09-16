@@ -986,7 +986,7 @@
                 </div>
             </div>
 
-            <div style="display: flex; gap: 8px;">
+            <div style="display: flex; gap: 8px; align-items: center;">
                 <button class="primary sm" onclick="runGlobalDiscovery()" title="Discover all models across enabled providers">
                     🔍 Discover
                 </button>
@@ -1005,6 +1005,13 @@
                 <a href="/landing" class="btn secondary sm" style="border-color: #6366f1; color: #a5b4fc; text-decoration: none;" title="View Landing Page">
                     🌐 Landing Page
                 </a>
+                
+                <!-- Authentication Container -->
+                <div id="hudAuthContainer" style="display: inline-flex; align-items: center; position: relative;">
+                    <button class="btn sm primary" onclick="openAuthModal('login')" style="display:inline-flex; align-items:center; gap:6px;">
+                        🔑 Sign In
+                    </button>
+                </div>
             </div>
         </div>
     </header>
@@ -1742,6 +1749,144 @@ Model ID: omni-code</pre>
     <!-- TOAST CONTAINER -->
     <div id="toast-container"></div>
 
+    <!-- MODAL: AUTHENTICATION (SIGN IN / REGISTER / GOOGLE OAUTH) -->
+    <div class="modal-overlay" id="authModal">
+        <div class="modal" style="max-width: 440px;">
+            <div class="modal-header">
+                <div class="modal-title" id="authModalTitle">🔐 Mission Control Access</div>
+                <button class="close-btn" onclick="closeModal('authModal')">&times;</button>
+            </div>
+
+            <!-- Tab Switcher -->
+            <div style="display: flex; gap: 8px; margin-bottom: 20px; background: rgba(30, 41, 59, 0.4); padding: 4px; border-radius: 8px; border: 1px solid var(--border);">
+                <button id="authTabLoginBtn" class="btn primary sm" style="flex: 1;" onclick="switchAuthTab('login')">Sign In</button>
+                <button id="authTabRegisterBtn" class="btn sm" style="flex: 1; background: transparent; border: none;" onclick="switchAuthTab('register')">Create Account</button>
+            </div>
+
+            <!-- One-Click Google OAuth & Drive Connect -->
+            <button class="btn sm" onclick="loginWithGoogle()" style="width: 100%; margin-bottom: 16px; background: #ffffff; color: #0f172a; border: 1px solid #cbd5e1; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 10px 16px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); cursor: pointer; transition: all 0.2s;">
+                <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
+                <span>Continue with Google & Drive</span>
+            </button>
+
+            <div style="display: flex; align-items: center; margin-bottom: 16px; color: var(--text-dim); font-size: 0.72rem;">
+                <hr style="flex: 1; border: 0; border-top: 1px solid var(--border);">
+                <span style="padding: 0 10px; font-weight: 700; letter-spacing: 0.5px;">OR PASSWORD LOGIN</span>
+                <hr style="flex: 1; border: 0; border-top: 1px solid var(--border);">
+            </div>
+
+            <!-- Login Form -->
+            <form id="authLoginForm" onsubmit="handleLoginSubmit(event)" style="display: flex; flex-direction: column; gap: 12px;">
+                <div>
+                    <label style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 4px;">Username or Email</label>
+                    <input type="text" id="loginIdentifier" placeholder="admin or user@example.com" required style="width: 100%;">
+                </div>
+                <div>
+                    <label style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 4px;">Password</label>
+                    <input type="password" id="loginPassword" placeholder="••••••••" required style="width: 100%;">
+                </div>
+                <button type="submit" class="primary" id="loginSubmitBtn" style="width: 100%; margin-top: 6px; padding: 10px;">
+                    Sign In to Console
+                </button>
+            </form>
+
+            <!-- Register Form -->
+            <form id="authRegisterForm" onsubmit="handleRegisterSubmit(event)" style="display: none; flex-direction: column; gap: 12px;">
+                <div>
+                    <label style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 4px;">Full Name</label>
+                    <input type="text" id="regName" placeholder="Jane Doe" style="width: 100%;">
+                </div>
+                <div>
+                    <label style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 4px;">Email Address</label>
+                    <input type="email" id="regEmail" placeholder="jane@example.com" required style="width: 100%;">
+                </div>
+                <div>
+                    <label style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 4px;">Username</label>
+                    <input type="text" id="regUsername" placeholder="janedoe" required style="width: 100%;">
+                </div>
+                <div>
+                    <label style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 4px;">Password (Min 6 characters)</label>
+                    <input type="password" id="regPassword" placeholder="••••••••" required style="width: 100%;">
+                </div>
+                <button type="submit" class="primary" id="registerSubmitBtn" style="width: 100%; margin-top: 6px; padding: 10px;">
+                    Create Free Account
+                </button>
+            </form>
+
+            <div id="authErrorBanner" style="display:none; margin-top:14px; padding:10px 14px; background: rgba(239,68,68,0.15); border: 1px solid rgba(239,68,68,0.3); color: #f87171; border-radius: 8px; font-size: 0.82rem;"></div>
+        </div>
+    </div>
+
+    <!-- MODAL: USER PROFILE & ACCOUNT MANAGEMENT -->
+    <div class="modal-overlay" id="userProfileModal">
+        <div class="modal" style="max-width: 520px;">
+            <div class="modal-header">
+                <div class="modal-title">👤 Account & Cloud Identity</div>
+                <button class="close-btn" onclick="closeModal('userProfileModal')">&times;</button>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 16px;">
+                <!-- User Profile Header Card -->
+                <div style="display: flex; align-items: center; gap: 16px; background: rgba(30, 41, 59, 0.5); padding: 16px; border-radius: 12px; border: 1px solid var(--border);">
+                    <img id="profModalAvatarImg" src="" style="width: 56px; height: 56px; border-radius: 50%; object-fit: cover; display: none; border: 2px solid var(--accent);">
+                    <div id="profModalAvatarInitials" style="width: 56px; height: 56px; border-radius: 50%; background: linear-gradient(135deg, #6366f1, #06b6d4); color: white; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; font-weight: 800;">U</div>
+                    <div style="flex: 1; overflow: hidden;">
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <span id="profModalName" style="font-weight: 800; font-size: 1.1rem; color: var(--text-main);">User Name</span>
+                            <span id="profModalRoleBadge" class="badge" style="background: rgba(99, 102, 241, 0.2); color: #818cf8; font-size: 0.7rem;">ADMIN</span>
+                        </div>
+                        <div id="profModalEmail" style="font-size: 0.85rem; color: var(--text-muted); margin-top: 2px;">user@example.com</div>
+                        <div id="profModalUsername" style="font-size: 0.75rem; color: var(--text-dim); font-family: var(--font-mono);">@username</div>
+                    </div>
+                </div>
+
+                <!-- Personal API Key Box -->
+                <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 14px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <label style="font-size: 0.8rem; font-weight: 700; color: var(--text-main); text-transform: uppercase;">🔑 Personal Router API Key</label>
+                        <button class="sm" onclick="regenerateUserApiKey()" style="font-size: 0.72rem; padding: 2px 8px; border-color: #f59e0b; color: #f59e0b;" title="Generate a fresh API key">
+                            🔄 Regenerate
+                        </button>
+                    </div>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <input type="text" id="profModalApiKey" readonly style="font-family: var(--font-mono); font-size: 0.78rem; color: #38bdf8; background: #06090f; flex: 1;">
+                        <button class="sm primary" onclick="copyUserApiKey()" title="Copy API Key to clipboard">📋 Copy</button>
+                    </div>
+                    <div style="font-size: 0.72rem; color: var(--text-dim); margin-top: 6px;">
+                        Pass this key in <code>Authorization: Bearer sk-omni-...</code> when calling <code>/v1/chat/completions</code>.
+                    </div>
+                </div>
+
+                <!-- Google Drive & Account Cloud Connection Box -->
+                <div style="background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 14px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <label style="font-size: 0.8rem; font-weight: 700; color: var(--text-main); text-transform: uppercase;">☁️ Google Drive & Cloud Sync</label>
+                        <span id="profModalDriveBadge" class="badge badge-healthy">🟢 Connected</span>
+                    </div>
+                    <div id="profModalDriveInfo" style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 12px; line-height: 1.5;">
+                        Google account linked. Benchmarks, evaluations, and RAG document uploads automatically synchronize with your Google Drive.
+                    </div>
+                    <div style="display: flex; gap: 8px;" id="profModalDriveActions">
+                        <button class="btn sm" onclick="loginWithGoogle()" style="background: #ffffff; color: #0f172a; border-color: #cbd5e1; font-weight: 600;">
+                            🔄 Reconnect Google
+                        </button>
+                        <button class="btn sm danger" onclick="unlinkGoogleAccount()" style="border-color: #ef4444; color: #ef4444;">
+                            Unlink Google
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Action Footer -->
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px; padding-top: 12px; border-top: 1px solid var(--border);">
+                    <button class="danger" onclick="logoutUser()" style="display: flex; align-items: center; gap: 6px;">
+                        🚪 Sign Out
+                    </button>
+                    <button onclick="closeModal('userProfileModal')">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL: ADD / EDIT CUSTOM PROVIDER -->
     <div class="modal-overlay" id="providerModal">
         <div class="modal">
@@ -1863,6 +2008,361 @@ Model ID: omni-code</pre>
         let allPersonas = [];
         let playgroundMessages = [];
         let activeTab = 'tab-overview';
+
+        // Authentication State
+        let authToken = localStorage.getItem('omni_auth_token') || null;
+        let currentUser = null;
+
+        // Fetch wrapper that injects Authorization token automatically
+        async function fetchWithAuth(url, options = {}) {
+            options.headers = options.headers || {};
+            if (authToken) {
+                options.headers['Authorization'] = `Bearer ${authToken}`;
+                options.headers['x-auth-token'] = authToken;
+            }
+            return fetch(url, options);
+        }
+
+        // Initialize Authentication & listen for OAuth popup messages
+        async function initAuth() {
+            // Listen for postMessage from Google OAuth popup window
+            window.addEventListener('message', async (event) => {
+                if (event.data && event.data.type === 'AUTH_SUCCESS') {
+                    authToken = event.data.token;
+                    currentUser = event.data.user;
+                    localStorage.setItem('omni_auth_token', authToken);
+                    localStorage.setItem('omni_auth_user', JSON.stringify(currentUser));
+                    updateAuthUI();
+                    showToast(`Welcome, ${currentUser.name || currentUser.username}! Google Drive connected.`, 'success');
+                    closeModal('authModal');
+                    fetchDriveStatus();
+                }
+            });
+
+            // Check if URL has ?auth=login or ?auth=register
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('auth') === 'login') {
+                openAuthModal('login');
+            } else if (urlParams.get('auth') === 'register') {
+                openAuthModal('register');
+            }
+
+            // Check existing session
+            if (authToken) {
+                try {
+                    const res = await fetchWithAuth('/api/auth/me');
+                    const data = await res.json();
+                    if (data.authenticated && data.user) {
+                        currentUser = data.user;
+                        localStorage.setItem('omni_auth_user', JSON.stringify(currentUser));
+                    } else {
+                        // Session expired
+                        authToken = null;
+                        currentUser = null;
+                        localStorage.removeItem('omni_auth_token');
+                        localStorage.removeItem('omni_auth_user');
+                    }
+                } catch (e) {
+                    console.error("Auth validation failed", e);
+                }
+            }
+            updateAuthUI();
+        }
+
+        // Update UI according to user login state
+        function updateAuthUI() {
+            const container = document.getElementById('hudAuthContainer');
+            if (!container) return;
+
+            if (currentUser) {
+                const initials = (currentUser.name || currentUser.username || 'U').charAt(0).toUpperCase();
+                const avatarHtml = currentUser.avatar_url 
+                    ? `<img src="${currentUser.avatar_url}" style="width: 24px; height: 24px; border-radius: 50%; object-fit: cover; border: 1.5px solid var(--accent);">`
+                    : `<span style="width: 24px; height: 24px; border-radius: 50%; background: linear-gradient(135deg, #6366f1, #06b6d4); color: #fff; font-size: 0.75rem; font-weight: 800; display: flex; align-items: center; justify-content: center;">${initials}</span>`;
+
+                container.innerHTML = `
+                    <button class="btn sm secondary" onclick="openUserProfileModal()" style="display: flex; align-items: center; gap: 8px; padding: 4px 12px; border-radius: 20px; border-color: rgba(99, 102, 241, 0.4); cursor: pointer;" title="View Profile & API Keys">
+                        ${avatarHtml}
+                        <span style="font-weight: 700; font-size: 0.82rem; color: var(--text-main); max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${currentUser.name || currentUser.username}</span>
+                        <span class="badge" style="font-size: 0.65rem; padding: 1px 6px; background: rgba(99, 102, 241, 0.15); color: #818cf8; text-transform: uppercase;">${currentUser.role || 'USER'}</span>
+                    </button>
+                `;
+            } else {
+                container.innerHTML = `
+                    <div style="display: flex; gap: 6px;">
+                        <button class="btn sm primary" onclick="openAuthModal('login')" style="display:inline-flex; align-items:center; gap:4px; padding: 6px 12px; font-weight: 600;">
+                            🔑 Sign In
+                        </button>
+                        <button class="btn sm" onclick="openAuthModal('register')" style="border-color: #6366f1; color: #818cf8; display:inline-flex; align-items:center; gap:4px; padding: 6px 12px; font-weight: 600;">
+                            ✨ Register
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        // Open Auth Modal in specified tab ('login' | 'register')
+        function openAuthModal(tab = 'login') {
+            switchAuthTab(tab);
+            openModal('authModal');
+        }
+
+        // Switch Auth Modal tab
+        function switchAuthTab(tab) {
+            const loginBtn = document.getElementById('authTabLoginBtn');
+            const regBtn = document.getElementById('authTabRegisterBtn');
+            const loginForm = document.getElementById('authLoginForm');
+            const regForm = document.getElementById('authRegisterForm');
+            const modalTitle = document.getElementById('authModalTitle');
+            const errBanner = document.getElementById('authErrorBanner');
+
+            if (errBanner) errBanner.style.display = 'none';
+
+            if (tab === 'login') {
+                loginBtn.classList.add('primary');
+                loginBtn.style.background = '';
+                loginBtn.style.border = '';
+                regBtn.classList.remove('primary');
+                regBtn.style.background = 'transparent';
+                regBtn.style.border = 'none';
+
+                loginForm.style.display = 'flex';
+                regForm.style.display = 'none';
+                modalTitle.innerText = '🔐 Sign In to Command Center';
+            } else {
+                regBtn.classList.add('primary');
+                regBtn.style.background = '';
+                regBtn.style.border = '';
+                loginBtn.classList.remove('primary');
+                loginBtn.style.background = 'transparent';
+                loginBtn.style.border = 'none';
+
+                regForm.style.display = 'flex';
+                loginForm.style.display = 'none';
+                modalTitle.innerText = '✨ Create Mission Control Account';
+            }
+        }
+
+        // Handle Login form submission
+        async function handleLoginSubmit(e) {
+            e.preventDefault();
+            const identifier = document.getElementById('loginIdentifier').value.trim();
+            const password = document.getElementById('loginPassword').value;
+            const submitBtn = document.getElementById('loginSubmitBtn');
+            const errBanner = document.getElementById('authErrorBanner');
+
+            if (!identifier || !password) return;
+
+            submitBtn.disabled = true;
+            submitBtn.innerText = 'Signing In...';
+            errBanner.style.display = 'none';
+
+            try {
+                const res = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ login: identifier, password })
+                });
+                const data = await res.json();
+
+                if (!res.ok || !data.success) {
+                    throw new Error(data.error || 'Authentication failed');
+                }
+
+                authToken = data.token;
+                currentUser = data.user;
+                localStorage.setItem('omni_auth_token', authToken);
+                localStorage.setItem('omni_auth_user', JSON.stringify(currentUser));
+                
+                updateAuthUI();
+                showToast(`Welcome back, ${currentUser.name || currentUser.username}!`, 'success');
+                closeModal('authModal');
+                fetchDriveStatus();
+            } catch (err) {
+                errBanner.innerText = err.message;
+                errBanner.style.display = 'block';
+                showToast(err.message, 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerText = 'Sign In to Console';
+            }
+        }
+
+        // Handle Registration form submission
+        async function handleRegisterSubmit(e) {
+            e.preventDefault();
+            const name = document.getElementById('regName').value.trim();
+            const email = document.getElementById('regEmail').value.trim();
+            const username = document.getElementById('regUsername').value.trim();
+            const password = document.getElementById('regPassword').value;
+            const submitBtn = document.getElementById('registerSubmitBtn');
+            const errBanner = document.getElementById('authErrorBanner');
+
+            if (!email || !username || !password) return;
+
+            submitBtn.disabled = true;
+            submitBtn.innerText = 'Creating Account...';
+            errBanner.style.display = 'none';
+
+            try {
+                const res = await fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email, username, password })
+                });
+                const data = await res.json();
+
+                if (!res.ok || !data.success) {
+                    throw new Error(data.error || 'Registration failed');
+                }
+
+                authToken = data.token;
+                currentUser = data.user;
+                localStorage.setItem('omni_auth_token', authToken);
+                localStorage.setItem('omni_auth_user', JSON.stringify(currentUser));
+                
+                updateAuthUI();
+                showToast(`Account created! Welcome, ${currentUser.name || currentUser.username}!`, 'success');
+                closeModal('authModal');
+                fetchDriveStatus();
+            } catch (err) {
+                errBanner.innerText = err.message;
+                errBanner.style.display = 'block';
+                showToast(err.message, 'error');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerText = 'Create Free Account';
+            }
+        }
+
+        // One-Click Google Sign In & Drive Connection
+        function loginWithGoogle() {
+            const width = 560;
+            const height = 680;
+            const left = window.screen.width / 2 - width / 2;
+            const top = window.screen.height / 2 - height / 2;
+            window.open('/api/auth/google/url', 'google_oauth_auth_window', `width=${width},height=${height},top=${top},left=${left},toolbar=no,location=no,status=no,menubar=no`);
+        }
+
+        // Logout user
+        async function logoutUser() {
+            try {
+                await fetchWithAuth('/api/auth/logout', { method: 'POST' });
+            } catch (e) {}
+
+            authToken = null;
+            currentUser = null;
+            localStorage.removeItem('omni_auth_token');
+            localStorage.removeItem('omni_auth_user');
+            updateAuthUI();
+            closeModal('userProfileModal');
+            showToast('Signed out successfully.', 'info');
+            fetchDriveStatus();
+        }
+
+        // Open Profile Modal & populate with current user details
+        function openUserProfileModal() {
+            if (!currentUser) {
+                openAuthModal('login');
+                return;
+            }
+
+            const initials = (currentUser.name || currentUser.username || 'U').charAt(0).toUpperCase();
+            const avatarImg = document.getElementById('profModalAvatarImg');
+            const avatarInitials = document.getElementById('profModalAvatarInitials');
+
+            if (currentUser.avatar_url) {
+                avatarImg.src = currentUser.avatar_url;
+                avatarImg.style.display = 'block';
+                avatarInitials.style.display = 'none';
+            } else {
+                avatarImg.style.display = 'none';
+                avatarInitials.innerText = initials;
+                avatarInitials.style.display = 'flex';
+            }
+
+            document.getElementById('profModalName').innerText = currentUser.name || currentUser.username;
+            document.getElementById('profModalRoleBadge').innerText = (currentUser.role || 'USER').toUpperCase();
+            document.getElementById('profModalEmail').innerText = currentUser.email || 'No email registered';
+            document.getElementById('profModalUsername').innerText = `@${currentUser.username}`;
+            document.getElementById('profModalApiKey').value = currentUser.api_key || 'sk-omni-none';
+
+            // Google Drive status in Profile Modal
+            const driveBadge = document.getElementById('profModalDriveBadge');
+            const driveInfo = document.getElementById('profModalDriveInfo');
+            const driveActions = document.getElementById('profModalDriveActions');
+
+            if (currentUser.google_connected || currentUser.google_email) {
+                driveBadge.className = 'badge badge-healthy';
+                driveBadge.innerText = '🟢 Connected';
+                driveInfo.innerHTML = `Linked to Google account: <strong style="color:var(--text-main);">${currentUser.google_email || currentUser.email}</strong>. Evaluations and RAG document uploads automatically backup to Drive.`;
+                driveActions.innerHTML = `
+                    <button class="btn sm" onclick="loginWithGoogle()" style="background: #ffffff; color: #0f172a; border: 1px solid #cbd5e1; font-weight: 600;">
+                        🔄 Reconnect
+                    </button>
+                    <button class="btn sm danger" onclick="unlinkGoogleAccount()" style="border-color: #ef4444; color: #ef4444;">
+                        Disconnect Google
+                    </button>
+                `;
+            } else {
+                driveBadge.className = 'badge badge-degraded';
+                driveBadge.innerText = '⚪ Not Linked';
+                driveInfo.innerText = 'Google account not linked. Connect your Google account to enable persistent cloud synchronization for your evaluations and RAG documents.';
+                driveActions.innerHTML = `
+                    <button class="btn sm" onclick="loginWithGoogle()" style="background: #ffffff; color: #0f172a; border: 1px solid #cbd5e1; font-weight: 700; display:flex; align-items:center; gap:6px;">
+                        <svg width="14" height="14" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
+                        Connect Google Account & Drive
+                    </button>
+                `;
+            }
+
+            openModal('userProfileModal');
+        }
+
+        // Copy User API Key
+        function copyUserApiKey() {
+            const keyInput = document.getElementById('profModalApiKey');
+            if (keyInput && keyInput.value) {
+                navigator.clipboard.writeText(keyInput.value);
+                showToast('Personal API Key copied!', 'success');
+            }
+        }
+
+        // Regenerate User API Key
+        async function regenerateUserApiKey() {
+            if (!confirm('Are you sure you want to regenerate your API key? Any existing integration using your old key will stop working.')) return;
+            try {
+                const res = await fetchWithAuth('/api/auth/regenerate-api-key', { method: 'POST' });
+                const data = await res.json();
+                if (data.success && data.api_key) {
+                    currentUser.api_key = data.api_key;
+                    localStorage.setItem('omni_auth_user', JSON.stringify(currentUser));
+                    document.getElementById('profModalApiKey').value = data.api_key;
+                    showToast('New API Key generated successfully!', 'success');
+                }
+            } catch (e) {
+                showToast('Failed to regenerate key: ' + e.message, 'error');
+            }
+        }
+
+        // Unlink Google account
+        async function unlinkGoogleAccount() {
+            if (!confirm('Unlink your Google account and Google Drive from AI Command Center?')) return;
+            try {
+                const res = await fetchWithAuth('/api/auth/unlink-google', { method: 'POST' });
+                const data = await res.json();
+                if (data.success) {
+                    currentUser.google_connected = 0;
+                    currentUser.google_email = null;
+                    localStorage.setItem('omni_auth_user', JSON.stringify(currentUser));
+                    showToast('Google account unlinked.', 'info');
+                    openUserProfileModal();
+                    fetchDriveStatus();
+                }
+            } catch (e) {
+                showToast('Failed to unlink Google account: ' + e.message, 'error');
+            }
+        }
 
         // Toast Helper
         function showToast(msg, type = 'info') {
@@ -2029,25 +2529,42 @@ Model ID: omni-code</pre>
 
         async function fetchDriveStatus() {
             try {
-                const res = await fetch('/api/drive/status');
+                const res = await fetchWithAuth('/api/drive/status');
                 const data = await res.json();
                 const hudDrive = document.getElementById('hudDriveStatus');
                 const driveBanner = document.getElementById('driveStatusText');
                 const authBtn = document.getElementById('driveAuthBtn');
 
                 if (data.isConnected) {
-                    hudDrive.innerText = 'Connected';
+                    const acctEmail = data.account?.email ? data.account.email : '';
+                    hudDrive.innerText = acctEmail ? acctEmail.split('@')[0] : 'Connected';
                     hudDrive.style.color = 'var(--healthy)';
-                    driveBanner.innerHTML = '<span style="color: var(--healthy); font-weight:700;">🟢 Connected & Synced</span>';
-                    authBtn.innerText = '✅ Drive Connected';
-                    authBtn.classList.remove('primary');
-                    authBtn.classList.add('success');
+                    hudDrive.title = acctEmail ? `Google Drive linked to ${acctEmail}` : 'Google Drive Connected';
+                    
+                    if (driveBanner) {
+                        driveBanner.innerHTML = `<span style="color: var(--healthy); font-weight:700;">🟢 Connected${acctEmail ? ' (' + acctEmail + ')' : ''}</span>`;
+                    }
+                    if (authBtn) {
+                        authBtn.innerText = '✅ Drive Connected';
+                        authBtn.classList.remove('primary');
+                        authBtn.classList.add('success');
+                        authBtn.onclick = () => openUserProfileModal();
+                    }
                 } else {
                     hudDrive.innerText = 'Disconnected';
                     hudDrive.style.color = 'var(--text-dim)';
-                    driveBanner.innerText = data.hasCredentials 
-                        ? 'Google OAuth credentials detected. Ready to authenticate.'
-                        : 'Credentials not in .env (add GOOGLE_CLIENT_ID).';
+                    hudDrive.title = 'Click to connect Google Drive';
+                    if (driveBanner) {
+                        driveBanner.innerText = data.hasCredentials 
+                            ? 'Google OAuth credentials detected. Ready to authenticate.'
+                            : 'Credentials not in .env (add GOOGLE_CLIENT_ID).';
+                    }
+                    if (authBtn) {
+                        authBtn.innerText = '☁️ Connect Google Drive';
+                        authBtn.classList.remove('success');
+                        authBtn.classList.add('primary');
+                        authBtn.onclick = () => loginWithGoogle();
+                    }
                 }
             } catch (e) {
                 console.error("Drive status check failed", e);
@@ -3090,6 +3607,7 @@ Model ID: omni-code</pre>
         // INITIAL LOAD & AUTO-POLL
         window.addEventListener('DOMContentLoaded', () => {
             initTheme();
+            initAuth();
             fetchInitialData();
             // Background telemetry polling every 12 seconds
             setInterval(() => {

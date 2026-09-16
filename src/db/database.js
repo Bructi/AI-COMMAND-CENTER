@@ -79,6 +79,33 @@ db.serialize(() => {
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )`);
 
+    // Create users table
+    db.run(`CREATE TABLE IF NOT EXISTS users (
+        id TEXT PRIMARY KEY,
+        username TEXT UNIQUE,
+        email TEXT UNIQUE,
+        password_hash TEXT,
+        salt TEXT,
+        name TEXT,
+        avatar_url TEXT,
+        google_id TEXT UNIQUE,
+        google_email TEXT,
+        google_tokens TEXT,
+        role TEXT DEFAULT 'admin',
+        api_key TEXT UNIQUE,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        last_login DATETIME
+    )`);
+
+    // Create sessions table
+    db.run(`CREATE TABLE IF NOT EXISTS sessions (
+        token TEXT PRIMARY KEY,
+        user_id TEXT,
+        expires_at DATETIME,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY(user_id) REFERENCES users(id)
+    )`);
+
     // Create document_chunks table for RAG
     db.run(`CREATE TABLE IF NOT EXISTS document_chunks (
         id TEXT PRIMARY KEY,
