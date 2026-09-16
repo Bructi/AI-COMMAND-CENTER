@@ -33,16 +33,50 @@
         body.theme-light {
             --bg-base: #f8fafc;
             --bg-surface: #ffffff;
-            --bg-card: rgba(255, 255, 255, 0.9);
-            --bg-card-hover: #ffffff;
+            --bg-card: #ffffff;
+            --bg-card-hover: #f8fafc;
             --border: #e2e8f0;
-            --border-glow: rgba(99, 102, 241, 0.2);
+            --border-glow: rgba(79, 70, 229, 0.15);
             --text-main: #0f172a;
-            --text-muted: #475569;
+            --text-muted: #334155;
             --text-dim: #64748b;
             --accent: #4f46e5;
             --accent-hover: #4338ca;
             --healthy: #059669;
+        }
+
+        body.theme-light .feature-card {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+        }
+
+        body.theme-light .feature-card:hover {
+            border-color: #cbd5e1;
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
+        }
+
+        body.theme-light .sim-section {
+            background: #ffffff;
+            border-color: #e2e8f0;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
+        }
+
+        body.theme-light .stats-ribbon {
+            background: #ffffff;
+            border-color: #e2e8f0;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+        }
+
+        body.theme-light .btn.secondary {
+            background: #ffffff;
+            border-color: #cbd5e1;
+            color: #0f172a;
+        }
+
+        body.theme-light .btn.secondary:hover {
+            background: #f8fafc;
+            border-color: #94a3b8;
         }
 
         * {
@@ -103,7 +137,7 @@
             align-items: center;
             gap: 10px;
             text-decoration: none;
-            color: #fff;
+            color: var(--text-main);
         }
 
         body.theme-light .brand-logo { color: #0f172a; }
@@ -214,10 +248,8 @@
             line-height: 1.15;
             letter-spacing: -1.5px;
             margin-bottom: 20px;
-            color: #fff;
+            color: var(--text-main);
         }
-
-        body.theme-light .hero-title { color: #0f172a; }
 
         .hero-title span.gradient-text {
             background: linear-gradient(135deg, #6366f1 20%, #06b6d4 80%);
@@ -296,11 +328,9 @@
             font-size: 2.2rem;
             font-weight: 800;
             letter-spacing: -0.8px;
-            color: #fff;
+            color: var(--text-main);
             margin-bottom: 12px;
         }
-
-        body.theme-light .section-title { color: #0f172a; }
 
         .section-desc {
             font-size: 1rem;
@@ -352,11 +382,9 @@
         .feature-title {
             font-size: 1.15rem;
             font-weight: 700;
-            color: #fff;
+            color: var(--text-main);
             margin-bottom: 10px;
         }
-
-        body.theme-light .feature-title { color: #0f172a; }
 
         .feature-desc {
             font-size: 0.88rem;
@@ -566,7 +594,7 @@
                 <div class="sim-grid">
                     <div>
                         <div class="section-tag">LIVE INTERACTIVE DEMO</div>
-                        <h2 style="font-size: 1.8rem; font-weight: 800; color: #fff; margin-bottom: 12px;">Experience Intelligent Dynamic Routing</h2>
+                        <h2 style="font-size: 1.8rem; font-weight: 800; color: var(--text-main); margin-bottom: 12px;">Experience Intelligent Dynamic Routing</h2>
                         <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px;">
                             Select a virtual alias below to simulate how AI Command Center evaluates capability score, health, and latency to route to the optimal model with fallback protection.
                         </p>

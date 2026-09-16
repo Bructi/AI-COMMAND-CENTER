@@ -38,25 +38,46 @@
             --unknown: #64748b;
             --purple: #a855f7;
             --purple-glow: rgba(168, 85, 247, 0.2);
+            
+            --badge-bg: #1e293b;
+            --badge-text: #cbd5e1;
+            --badge-border: rgba(255, 255, 255, 0.08);
+            
+            --role-bg: rgba(99, 102, 241, 0.15);
+            --role-text: #a5b4fc;
+            --role-border: rgba(99, 102, 241, 0.3);
+            
+            --free-bg: rgba(6, 182, 212, 0.15);
+            --free-text: #22d3ee;
+            --free-border: rgba(6, 182, 212, 0.3);
+            
+            --paid-bg: rgba(168, 85, 247, 0.15);
+            --paid-text: #c084fc;
+            --paid-border: rgba(168, 85, 247, 0.3);
+            
+            --btn-bg: #1e293b;
+            --btn-border: #334155;
+            --btn-text: #f8fafc;
+            
             --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "JetBrains Mono", monospace;
             --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", "Helvetica Neue", sans-serif;
         }
 
-        /* Light Theme Override */
+        /* Light Theme Override — Premium High-Contrast Studio Light */
         body.theme-light {
-            --bg-base: #f1f5f9;
+            --bg-base: #f8fafc;
             --bg-surface: #ffffff;
-            --bg-card: rgba(255, 255, 255, 0.92);
-            --bg-card-hover: #ffffff;
-            --border: #cbd5e1;
-            --border-glow: rgba(99, 102, 241, 0.2);
+            --bg-card: #ffffff;
+            --bg-card-hover: #f8fafc;
+            --border: #e2e8f0;
+            --border-glow: rgba(79, 70, 229, 0.15);
             --text-main: #0f172a;
-            --text-muted: #475569;
+            --text-muted: #334155;
             --text-dim: #64748b;
             
             --accent: #4f46e5;
             --accent-hover: #4338ca;
-            --accent-glow: rgba(79, 70, 229, 0.15);
+            --accent-glow: rgba(79, 70, 229, 0.2);
             
             --cyan: #0284c7;
             --cyan-glow: rgba(2, 132, 199, 0.15);
@@ -65,18 +86,42 @@
             --healthy-bg: #ecfdf5;
             --healthy-border: #a7f3d0;
             
-            --degraded: #d97706;
+            --degraded: #b45309;
             --degraded-bg: #fffbeb;
             --degraded-border: #fde68a;
             
             --failed: #dc2626;
             --failed-bg: #fef2f2;
             --failed-border: #fecaca;
+            
+            --unknown: #64748b;
+            --purple: #7c3aed;
+            
+            --badge-bg: #f1f5f9;
+            --badge-text: #334155;
+            --badge-border: #cbd5e1;
+            
+            --role-bg: #eef2ff;
+            --role-text: #4338ca;
+            --role-border: #c7d2fe;
+            
+            --free-bg: #f0f9ff;
+            --free-text: #0369a1;
+            --free-border: #bae6fd;
+            
+            --paid-bg: #faf5ff;
+            --paid-text: #6b21a8;
+            --paid-border: #e9d5ff;
+            
+            --btn-bg: #ffffff;
+            --btn-border: #cbd5e1;
+            --btn-text: #0f172a;
         }
 
         body.theme-light .top-hud {
-            background: rgba(255, 255, 255, 0.9);
-            border-bottom-color: #e2e8f0;
+            background: rgba(255, 255, 255, 0.92);
+            border-bottom: 1px solid #e2e8f0;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
         }
 
         body.theme-light .brand-title {
@@ -85,7 +130,7 @@
 
         body.theme-light .nav-tabs {
             background: #ffffff;
-            border-bottom-color: #e2e8f0;
+            border-bottom: 1px solid #e2e8f0;
         }
 
         body.theme-light .nav-tab:hover {
@@ -95,28 +140,68 @@
 
         body.theme-light .nav-tab .tab-badge {
             background: #e2e8f0;
-            color: #475569;
+            color: #334155;
         }
 
         body.theme-light .card {
             background: #ffffff;
-            border-color: #e2e8f0;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05);
         }
 
         body.theme-light .card:hover {
             border-color: #cbd5e1;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+        }
+
+        body.theme-light .metric-pill {
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+        }
+
+        body.theme-light button, body.theme-light .btn {
+            background: #ffffff;
+            border-color: #cbd5e1;
+            color: #0f172a;
+        }
+
+        body.theme-light button:hover, body.theme-light .btn:hover {
+            background: #f8fafc;
+            border-color: #94a3b8;
+        }
+
+        body.theme-light button.primary, body.theme-light .btn.primary {
+            background: linear-gradient(135deg, #4f46e5, #4338ca);
+            color: #ffffff;
+            border-color: #4338ca;
+        }
+
+        body.theme-light button.success, body.theme-light .btn.success {
+            background: linear-gradient(135deg, #059669, #047857);
+            color: #ffffff;
+            border-color: #059669;
+        }
+
+        body.theme-light button.danger, body.theme-light .btn.danger {
+            background: #fef2f2;
+            color: #dc2626;
+            border-color: #fecaca;
         }
 
         body.theme-light th {
             background: #f8fafc;
-            color: #64748b;
-            border-bottom-color: #e2e8f0;
+            color: #475569;
+            border-bottom: 1px solid #e2e8f0;
         }
 
         body.theme-light td {
-            border-bottom-color: #f1f5f9;
+            border-bottom: 1px solid #f1f5f9;
+            color: #0f172a;
+        }
+
+        body.theme-light tr:hover td {
+            background: #f8fafc;
         }
 
         body.theme-light input[type="text"], 
@@ -138,22 +223,25 @@
             background: #f8fafc;
             border-color: #e2e8f0;
             color: #0f172a;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
         }
 
         body.theme-light .chat-input-bar {
             background: #ffffff;
-            border-top-color: #e2e8f0;
+            border-top: 1px solid #e2e8f0;
         }
 
         body.theme-light .terminal-box {
             background: #0f172a;
-            color: #a7f3d0;
+            color: #38bdf8;
+            border-color: #334155;
         }
 
         body.theme-light .modal {
             background: #ffffff;
             border-color: #e2e8f0;
             color: #0f172a;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
         }
 
         body.theme-light .modal-title {
@@ -223,7 +311,7 @@
             font-size: 1.05rem;
             font-weight: 700;
             letter-spacing: -0.3px;
-            color: #fff;
+            color: var(--text-main);
             display: flex;
             align-items: center;
             gap: 8px;
@@ -537,9 +625,9 @@
             font-size: 0.75rem;
             font-weight: 600;
             font-family: var(--font-mono);
-            background: #1e293b;
-            color: var(--text-muted);
-            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: var(--badge-bg);
+            color: var(--badge-text);
+            border: 1px solid var(--badge-border);
         }
 
         .badge-healthy {
@@ -561,21 +649,21 @@
         }
 
         .badge-free {
-            background: rgba(6, 182, 212, 0.15);
-            color: #22d3ee;
-            border-color: rgba(6, 182, 212, 0.3);
+            background: var(--free-bg);
+            color: var(--free-text);
+            border-color: var(--free-border);
         }
 
         .badge-paid {
-            background: rgba(168, 85, 247, 0.15);
-            color: #c084fc;
-            border-color: rgba(168, 85, 247, 0.3);
+            background: var(--paid-bg);
+            color: var(--paid-text);
+            border-color: var(--paid-border);
         }
 
         .badge-role {
-            background: rgba(99, 102, 241, 0.15);
-            color: #a5b4fc;
-            border-color: rgba(99, 102, 241, 0.3);
+            background: var(--role-bg);
+            color: var(--role-text);
+            border-color: var(--role-border);
         }
 
         /* Switch Toggle */
@@ -683,7 +771,7 @@
         .modal-title {
             font-size: 1.15rem;
             font-weight: 700;
-            color: #fff;
+            color: var(--text-main);
         }
 
         .close-btn {
@@ -696,7 +784,7 @@
         }
 
         .close-btn:hover {
-            color: #fff;
+            color: var(--text-main);
             transform: none;
         }
 
@@ -961,9 +1049,9 @@
     <main class="app-content">
 
         <!-- LIVE HEALTH CHECK PROGRESS BANNER -->
-        <div id="healthJobBanner" style="display: none; background: rgba(15, 23, 42, 0.95); border: 1px solid #6366f1; border-radius: 12px; padding: 14px 20px; margin-bottom: 24px; box-shadow: 0 0 20px rgba(99, 102, 241, 0.2);">
+        <div id="healthJobBanner" style="display: none; background: var(--bg-card); border: 1px solid #6366f1; border-radius: 12px; padding: 14px 20px; margin-bottom: 24px; box-shadow: 0 0 20px rgba(99, 102, 241, 0.2);">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                <div style="font-weight: 700; color: #fff; display: flex; align-items: center; gap: 8px;">
+                <div style="font-weight: 700; color: var(--text-main); display: flex; align-items: center; gap: 8px;">
                     <span class="status-dot" style="background:#6366f1; box-shadow:0 0 8px #6366f1;"></span>
                     <span>⚡ Health Engine Testing In Progress...</span>
                 </div>
@@ -971,12 +1059,12 @@
                     0 / 0 tested
                 </div>
             </div>
-            <div style="width: 100%; height: 8px; background: #1e293b; border-radius: 4px; overflow: hidden; margin-bottom: 10px;">
+            <div style="width: 100%; height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; margin-bottom: 10px;">
                 <div id="healthJobProgressBar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #6366f1, #06b6d4, #10b981); transition: width 0.3s ease;"></div>
             </div>
             <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-dim); font-family: var(--font-mono);">
                 <div id="healthJobStats">🟢 0 Healthy | 🟡 0 Degraded | 🔴 0 Failed</div>
-                <div id="healthJobCurrent" style="color: #a5b4fc; max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Probing...</div>
+                <div id="healthJobCurrent" style="color: var(--accent); max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Probing...</div>
             </div>
         </div>
 
@@ -987,7 +1075,7 @@
             <div class="grid-4" style="margin-bottom: 24px;">
                 <div class="card">
                     <div class="metric-label" style="margin-bottom: 6px;">Total Requests Handled</div>
-                    <div style="font-size: 2rem; font-weight: 800; font-family: var(--font-mono); color: #fff;" id="ovTotalReqs">0</div>
+                    <div style="font-size: 2rem; font-weight: 800; font-family: var(--font-mono); color: var(--text-main);" id="ovTotalReqs">0</div>
                     <div style="font-size: 0.75rem; color: var(--healthy); margin-top: 4px;" id="ovSuccessRate">100% Success Rate</div>
                 </div>
                 <div class="card">
@@ -1134,7 +1222,7 @@
         <section id="tab-providers" class="tab-pane">
             <div class="toolbar">
                 <div>
-                    <h3 style="font-size: 1.1rem; color: #fff;">Connected AI Providers</h3>
+                    <h3 style="font-size: 1.1rem; color: var(--text-main);">Connected AI Providers</h3>
                     <p style="font-size: 0.8rem; color: var(--text-muted);">Manage multi-provider API keys, base endpoints, connection tests, and model extraction.</p>
                 </div>
                 <button class="primary" onclick="openAddProviderModal()">➕ Add Custom Provider</button>
@@ -1152,7 +1240,7 @@
         <section id="tab-routing" class="tab-pane">
             <div class="toolbar">
                 <div>
-                    <h3 style="font-size: 1.1rem; color: #fff;">Dynamic Aliases & Intelligent Routing</h3>
+                    <h3 style="font-size: 1.1rem; color: var(--text-main);">Dynamic Aliases & Intelligent Routing</h3>
                     <p style="font-size: 0.8rem; color: var(--text-muted);">Map smart aliases to roles and routing algorithms. Clients like Hermes or Cursor can call aliases without worrying about dead models.</p>
                 </div>
                 <button class="primary" onclick="openAddAliasModal()">➕ Add / Edit Alias</button>
@@ -1317,7 +1405,7 @@ Waiting for Arena prompt...
         <section id="tab-benchmarks" class="tab-pane">
             <div class="toolbar">
                 <div>
-                    <h3 style="font-size: 1.1rem; color: #fff;">Model Benchmark Lab</h3>
+                    <h3 style="font-size: 1.1rem; color: var(--text-main);">Model Benchmark Lab</h3>
                     <p style="font-size: 0.8rem; color: var(--text-muted);">
                         Evaluate models with standardized tests: Coding, Reasoning, JSON Output, Agent Constraints, & Latency. Auto-uploaded to Google Drive.
                     </p>
@@ -1410,7 +1498,7 @@ Waiting for Arena prompt...
                     </div>
                     <div style="display: flex; flex-direction: column; gap: 14px;">
                         <div id="driveStatusBanner" style="padding: 12px; border-radius: 8px; background: rgba(255,255,255,0.03); border: 1px solid var(--border);">
-                            <div style="font-weight: 600; color: #fff; margin-bottom: 4px;">Status</div>
+                            <div style="font-weight: 600; color: var(--text-main); margin-bottom: 4px;">Status</div>
                             <div id="driveStatusText" style="font-size: 0.85rem; color: var(--text-dim);">Checking...</div>
                         </div>
 
@@ -1456,7 +1544,7 @@ Waiting for Arena prompt...
         <section id="tab-doctor" class="tab-pane">
             <div class="toolbar">
                 <div>
-                    <h3 style="font-size: 1.1rem; color: #fff;">🩺 Provider Doctor System Diagnostics</h3>
+                    <h3 style="font-size: 1.1rem; color: var(--text-main);">🩺 Provider Doctor System Diagnostics</h3>
                     <p style="font-size: 0.8rem; color: var(--text-muted);">
                         Comprehensive diagnostics audit across all configured providers, API credentials, endpoints, health ratios, and recommended active pool.
                     </p>
@@ -2008,7 +2096,7 @@ Model ID: omni-code</pre>
 
                 return `
                     <tr>
-                        <td style="font-family: var(--font-mono); font-weight: 700; color: #fff;">${m.id}</td>
+                        <td style="font-family: var(--font-mono); font-weight: 700; color: var(--text-main);">${m.id}</td>
                         <td style="color: var(--text-muted); font-size: 0.8rem;">${m.provider_id}</td>
                         <td>${statusBadge}</td>
                         <td style="font-weight: 700; font-family: var(--font-mono); color: #38bdf8;">${m.score || 0}</td>
@@ -2040,7 +2128,7 @@ Model ID: omni-code</pre>
                     <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.02); padding:10px 14px; border-radius:8px; border:1px solid var(--border);">
                         <div style="display:flex; align-items:center; gap:8px;">
                             ${statusDot}
-                            <span style="font-weight:600; color:#fff;">${p.name}</span>
+                            <span style="font-weight:600; color:var(--text-main);">${p.name}</span>
                             <span style="font-size:0.75rem; color:var(--text-dim);">(${p.healthy_models || 0} healthy / ${p.total_models || 0} models)</span>
                         </div>
                         <div style="font-family:var(--font-mono); font-size:0.8rem; color:${p.avg_latency ? '#38bdf8' : 'var(--text-dim)'};">
@@ -2060,7 +2148,7 @@ Model ID: omni-code</pre>
 
             topBody.innerHTML = top.map(m => `
                 <tr>
-                    <td style="font-family: var(--font-mono); font-weight: 700; color: #fff;">${m.id}</td>
+                    <td style="font-family: var(--font-mono); font-weight: 700; color: var(--text-main);">${m.id}</td>
                     <td style="color: var(--text-muted);">${m.provider_id}</td>
                     <td><span class="badge badge-healthy">${m.status}</span></td>
                     <td style="font-weight:700; color:#38bdf8;">${m.score || 0}</td>
@@ -2097,7 +2185,7 @@ Model ID: omni-code</pre>
                     </div>
 
                     <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.02); padding: 8px 12px; border-radius: 6px; font-size: 0.75rem; margin-bottom: 12px;">
-                        <div>Models: <strong style="color:#fff;">${p.total_models || 0}</strong> (<span style="color:var(--healthy);">${p.healthy_models || 0} healthy</span>)</div>
+                        <div>Models: <strong style="color:var(--text-main);">${p.total_models || 0}</strong> (<span style="color:var(--healthy);">${p.healthy_models || 0} healthy</span>)</div>
                         <div>Ping: <strong style="color:#38bdf8;">${p.avg_latency ? p.avg_latency + 'ms' : '-'}</strong></div>
                     </div>
 
@@ -2722,7 +2810,7 @@ Model ID: omni-code</pre>
 
                 tbody.innerHTML = history.map(h => `
                     <tr>
-                        <td style="font-family: var(--font-mono); font-weight:700; color:#fff;">${h.model_id}</td>
+                        <td style="font-family: var(--font-mono); font-weight:700; color:var(--text-main);">${h.model_id}</td>
                         <td><strong style="color:var(--healthy);">${h.overall_score || 0} / 100</strong></td>
                         <td>${h.coding_score || 0}%</td>
                         <td>${h.reasoning_score || 0}%</td>
@@ -2755,7 +2843,7 @@ Model ID: omni-code</pre>
 
                 tableBody.innerHTML = doc.providers.map(p => `
                     <tr>
-                        <td style="font-weight:700; color:#fff;">${p.name}</td>
+                        <td style="font-weight:700; color:var(--text-main);">${p.name}</td>
                         <td>${p.hasKey ? '✅ Configured' : '❌ Missing'}</td>
                         <td>${p.reachable ? '<span class="badge badge-healthy">🟢 Reachable</span>' : '<span class="badge badge-failed">🔴 Unreachable</span>'}</td>
                         <td style="font-family:var(--font-mono);">${p.latency ? p.latency + 'ms' : '-'}</td>
@@ -2810,7 +2898,7 @@ Model ID: omni-code</pre>
 
                 tbody.innerHTML = docs.map(d => `
                     <tr>
-                        <td style="font-weight:600; color:#fff;">📄 ${d.filename}</td>
+                        <td style="font-weight:600; color:var(--text-main);">📄 ${d.filename}</td>
                         <td>${Math.round(d.size / 1024)} KB</td>
                         <td><span class="badge badge-role">${d.chunk_count || 0} chunks</span></td>
                         <td style="font-family:var(--font-mono); color:var(--text-muted); font-size:0.8rem;">${d.drive_id || 'Local Cache'}</td>
@@ -2929,7 +3017,7 @@ Model ID: omni-code</pre>
                     return `
                         <tr>
                             <td style="font-family: var(--font-mono); font-size:0.75rem; color:var(--text-dim);">${new Date(l.timestamp).toLocaleTimeString()}</td>
-                            <td style="font-weight:600; color:#fff;">${l.requested_model}</td>
+                            <td style="font-weight:600; color:var(--text-main);">${l.requested_model}</td>
                             <td style="font-family: var(--font-mono); color:#38bdf8;">${l.routed_model || '-'}</td>
                             <td>${statusBadge}</td>
                             <td style="font-family: var(--font-mono);">${l.latency ? l.latency + 'ms' : '-'}</td>
