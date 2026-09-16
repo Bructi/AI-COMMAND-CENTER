@@ -15,6 +15,15 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(express.static(path.join(__dirname, '../public')));
 
+// Landing Page & App Entry Points
+app.get('/landing', (req, res) => {
+    res.sendFile(path.join(__dirname, '../public/landing.html'));
+});
+
+app.get('/app', (req, res) => {
+    res.sendFile(path.join(__dirname, '../public/index.html'));
+});
+
 const PORT = process.env.PORT || 3000;
 
 // Initialize Providers dynamically

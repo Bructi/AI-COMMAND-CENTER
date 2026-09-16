@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Command Center — Intelligent Multi-Provider AI Router & RAG Infrastructure</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+    <style>
+        :root {
+            --bg-base: #06090f;
+            --bg-surface: #0f172a;
+            --bg-card: rgba(15, 23, 42, 0.75);
+            --bg-card-hover: rgba(30, 41, 59, 0.85);
+            --border: #1e293b;
+            --border-glow: rgba(99, 102, 241, 0.35);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --text-dim: #64748b;
+            
+            --accent: #6366f1;
+            --accent-hover: #4f46e5;
+            --accent-glow: rgba(99, 102, 241, 0.3);
+            
+            --cyan: #06b6d4;
+            --healthy: #10b981;
+            --degraded: #f59e0b;
+            --purple: #a855f7;
+            
+            --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "JetBrains Mono", monospace;
+            --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", "Helvetica Neue", sans-serif;
+        }
+
+        body.theme-light {
+            --bg-base: #f8fafc;
+            --bg-surface: #ffffff;
+            --bg-card: rgba(255, 255, 255, 0.9);
+            --bg-card-hover: #ffffff;
+            --border: #e2e8f0;
+            --border-glow: rgba(99, 102, 241, 0.2);
+            --text-main: #0f172a;
+            --text-muted: #475569;
+            --text-dim: #64748b;
+            --accent: #4f46e5;
+            --accent-hover: #4338ca;
+            --healthy: #059669;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            font-family: var(--font-sans);
+            line-height: 1.6;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 20% 10%, rgba(99, 102, 241, 0.12) 0%, transparent 50%),
+                radial-gradient(circle at 80% 60%, rgba(6, 182, 212, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 50% 90%, rgba(168, 85, 247, 0.08) 0%, transparent 50%);
+            background-attachment: fixed;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg-base); }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+
+        /* Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        /* Header Navigation */
+        header.site-header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(6, 9, 15, 0.85);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+            padding: 16px 0;
+            transition: all 0.2s ease;
+        }
+
+        body.theme-light header.site-header {
+            background: rgba(255, 255, 255, 0.85);
+        }
+
+        .nav-inner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .brand-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            color: #fff;
+        }
+
+        body.theme-light .brand-logo { color: #0f172a; }
+
+        .brand-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #6366f1, #06b6d4);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            box-shadow: 0 0 15px var(--accent-glow);
+        }
+
+        .brand-name {
+            font-weight: 800;
+            font-size: 1.15rem;
+            letter-spacing: -0.5px;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 28px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: color 0.2s ease;
+        }
+
+        .nav-links a:hover {
+            color: var(--text-main);
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px 22px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            font-family: inherit;
+            border-radius: 8px;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid transparent;
+        }
+
+        .btn.primary {
+            background: linear-gradient(135deg, #6366f1, #4f46e5);
+            color: white;
+            box-shadow: 0 4px 16px var(--accent-glow);
+        }
+
+        .btn.primary:hover {
+            background: linear-gradient(135deg, #4f46e5, #4338ca);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px var(--accent-glow);
+        }
+
+        .btn.secondary {
+            background: rgba(30, 41, 59, 0.6);
+            color: var(--text-main);
+            border-color: var(--border);
+        }
+
+        .btn.secondary:hover {
+            background: rgba(51, 65, 85, 0.8);
+            transform: translateY(-2px);
+        }
+
+        /* Hero Section */
+        .hero-section {
+            padding: 90px 0 60px;
+            text-align: center;
+            position: relative;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(99, 102, 241, 0.12);
+            border: 1px solid rgba(99, 102, 241, 0.35);
+            color: #818cf8;
+            padding: 6px 16px;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            margin-bottom: 24px;
+            letter-spacing: 0.5px;
+            font-family: var(--font-mono);
+        }
+
+        .hero-title {
+            font-size: 3.4rem;
+            font-weight: 800;
+            line-height: 1.15;
+            letter-spacing: -1.5px;
+            margin-bottom: 20px;
+            color: #fff;
+        }
+
+        body.theme-light .hero-title { color: #0f172a; }
+
+        .hero-title span.gradient-text {
+            background: linear-gradient(135deg, #6366f1 20%, #06b6d4 80%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-subtitle {
+            font-size: 1.15rem;
+            color: var(--text-muted);
+            max-width: 760px;
+            margin: 0 auto 36px;
+            line-height: 1.6;
+        }
+
+        .hero-actions {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            margin-bottom: 50px;
+        }
+
+        /* Hero Stats Banner */
+        .stats-ribbon {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            background: var(--bg-card);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 24px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            margin-bottom: 80px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-val {
+            font-size: 2.2rem;
+            font-weight: 800;
+            font-family: var(--font-mono);
+            color: #38bdf8;
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+        }
+
+        /* Section Headings */
+        .section-header {
+            text-align: center;
+            max-width: 700px;
+            margin: 0 auto 50px;
+        }
+
+        .section-tag {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            color: #818cf8;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+            font-family: var(--font-mono);
+        }
+
+        .section-title {
+            font-size: 2.2rem;
+            font-weight: 800;
+            letter-spacing: -0.8px;
+            color: #fff;
+            margin-bottom: 12px;
+        }
+
+        body.theme-light .section-title { color: #0f172a; }
+
+        .section-desc {
+            font-size: 1rem;
+            color: var(--text-muted);
+        }
+
+        /* Feature Cards Grid */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+            margin-bottom: 90px;
+        }
+
+        @media (max-width: 900px) {
+            .features-grid, .stats-ribbon { grid-template-columns: 1fr; }
+            .hero-title { font-size: 2.4rem; }
+        }
+
+        .feature-card {
+            background: var(--bg-card);
+            backdrop-filter: blur(8px);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 28px;
+            transition: all 0.25s ease;
+            position: relative;
+        }
+
+        .feature-card:hover {
+            border-color: rgba(99, 102, 241, 0.4);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+        }
+
+        .feature-icon-wrap {
+            width: 48px;
+            height: 48px;
+            border-radius: 10px;
+            background: rgba(99, 102, 241, 0.12);
+            border: 1px solid rgba(99, 102, 241, 0.25);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 18px;
+        }
+
+        .feature-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 10px;
+        }
+
+        body.theme-light .feature-title { color: #0f172a; }
+
+        .feature-desc {
+            font-size: 0.88rem;
+            color: var(--text-muted);
+            line-height: 1.55;
+        }
+
+        /* Interactive Simulator Box */
+        .sim-section {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 36px;
+            margin-bottom: 90px;
+            box-shadow: 0 14px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .sim-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            align-items: center;
+        }
+
+        @media (max-width: 800px) {
+            .sim-grid { grid-template-columns: 1fr; }
+        }
+
+        .terminal-preview {
+            background: #080b11;
+            border: 1px solid #1e293b;
+            border-radius: 10px;
+            padding: 18px;
+            font-family: var(--font-mono);
+            font-size: 0.82rem;
+            color: #a7f3d0;
+            line-height: 1.6;
+            min-height: 220px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+        }
+
+        /* Integration Snippets Tabs */
+        .code-box {
+            background: #080b11;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 80px;
+        }
+
+        .code-tabs {
+            display: flex;
+            background: rgba(15, 23, 42, 0.9);
+            border-bottom: 1px solid var(--border);
+            padding: 0 14px;
+        }
+
+        .code-tab {
+            padding: 12px 18px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+        }
+
+        .code-tab.active {
+            color: #818cf8;
+            border-bottom-color: var(--accent);
+        }
+
+        .code-body {
+            padding: 22px;
+            font-family: var(--font-mono);
+            font-size: 0.85rem;
+            color: #38bdf8;
+            overflow-x: auto;
+            white-space: pre;
+        }
+
+        /* Footer */
+        footer.site-footer {
+            border-top: 1px solid var(--border);
+            padding: 40px 0;
+            text-align: center;
+            color: var(--text-dim);
+            font-size: 0.85rem;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header Navigation -->
+    <header class="site-header">
+        <div class="container nav-inner">
+            <a href="/landing" class="brand-logo">
+                <div class="brand-icon">⚡</div>
+                <div class="brand-name">AI COMMAND CENTER</div>
+            </a>
+
+            <ul class="nav-links">
+                <li><a href="#features">Features</a></li>
+                <li><a href="#simulator">Live Simulator</a></li>
+                <li><a href="#rag">RAG Engine</a></li>
+                <li><a href="#api">API & SDKs</a></li>
+            </ul>
+
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <button class="btn secondary" onclick="toggleTheme()" style="padding: 8px 14px; font-size: 0.8rem;" id="landingThemeBtn">🌙 Theme</button>
+                <a href="/" class="btn primary">🚀 Launch Console</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        <!-- Hero Section -->
+        <section class="hero-section container">
+            <div class="hero-badge">
+                ⚡ PERSONAL AI INFRASTRUCTURE & ROUTING ENGINE
+            </div>
+            <h1 class="hero-title">
+                One Endpoint for Every AI Model.<br>
+                <span class="gradient-text">Zero Downtime. Infinite Reliability.</span>
+            </h1>
+            <p class="hero-subtitle">
+                A lightweight, personal AI infrastructure hub that routes, tests, and auto-fails over across multiple providers. Exposes a drop-in OpenAI-compatible endpoint with embedded RAG retrieval, smart virtual aliases, and automated health checks.
+            </p>
+
+            <div class="hero-actions">
+                <a href="/" class="btn primary" style="padding: 14px 30px; font-size: 1rem;">🚀 Launch Command Center</a>
+                <a href="#simulator" class="btn secondary" style="padding: 14px 26px; font-size: 1rem;">⚡ Try Route Simulator</a>
+            </div>
+
+            <!-- Stats Ribbon -->
+            <div class="stats-ribbon">
+                <div class="stat-item">
+                    <div class="stat-val" id="stModelCount">618</div>
+                    <div class="stat-label">Discovered Models</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-val" id="stHealthyCount" style="color: var(--healthy);">55</div>
+                    <div class="stat-label">Verified Operational</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-val" style="color: #a855f7;">7</div>
+                    <div class="stat-label">Smart Virtual Aliases</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-val" style="color: #facc15;">100%</div>
+                    <div class="stat-label">Local-First & Private</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Core Features Grid -->
+        <section class="container" id="features">
+            <div class="section-header">
+                <div class="section-tag">ARCHITECTURAL PILLARS</div>
+                <h2 class="section-title">Engineered for Autonomous Agents & Developers</h2>
+                <p class="section-desc">Everything you need to orchestrate multi-provider cloud inference without rate limits, broken endpoints, or bloated local dependencies.</p>
+            </div>
+
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon-wrap">🔀</div>
+                    <h3 class="feature-title">Dynamic Virtual Aliases</h3>
+                    <p class="feature-desc">Call universal models like <code>omni-fast</code>, <code>omni-code</code>, or <code>omni-reason</code>. If a provider degrades, requests auto-failover to the next healthy model instantly.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon-wrap">📚</div>
+                    <h3 class="feature-title">Embedded RAG Knowledge Layer</h3>
+                    <p class="feature-desc">Upload notes, PDFs, or specs. Built-in hybrid semantic search chunks and indexes your knowledge base, returning precise source citations directly in chat.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon-wrap">🧪</div>
+                    <h3 class="feature-title">5-Task Benchmark Lab</h3>
+                    <p class="feature-desc">Evaluate real capabilities with Coding, Reasoning, JSON, and Latency tests. Auto-backs up standardized markdown evaluation reports to Google Drive.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon-wrap">🩺</div>
+                    <h3 class="feature-title">Provider Doctor Diagnostics</h3>
+                    <p class="feature-desc">One-click infrastructure scanner tests API credentials, network reachability, rate limits, and recommends the optimal active model pool.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon-wrap">🤖</div>
+                    <h3 class="feature-title">Hermes & IDE Drop-In</h3>
+                    <p class="feature-desc">Directly integrates with Hermes AI Agent, Cursor, Cline, Roo Code, and Python <code>openai</code> SDK via <code>http://localhost:3000/v1</code>.</p>
+                </div>
+
+                <div class="feature-card">
+                    <div class="feature-icon-wrap">☁️</div>
+                    <h3 class="feature-title">Google Drive Cloud Sync</h3>
+                    <p class="feature-desc">Persistent cloud backup for evaluation datasets, benchmarks, and knowledge bases without consuming valuable disk space on 8GB laptops.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Interactive Route Simulator Widget -->
+        <section class="container" id="simulator">
+            <div class="sim-section">
+                <div class="sim-grid">
+                    <div>
+                        <div class="section-tag">LIVE INTERACTIVE DEMO</div>
+                        <h2 style="font-size: 1.8rem; font-weight: 800; color: #fff; margin-bottom: 12px;">Experience Intelligent Dynamic Routing</h2>
+                        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 20px;">
+                            Select a virtual alias below to simulate how AI Command Center evaluates capability score, health, and latency to route to the optimal model with fallback protection.
+                        </p>
+
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px;">
+                            <button class="btn secondary" onclick="runSim('omni-fast')">⚡ omni-fast</button>
+                            <button class="btn secondary" onclick="runSim('omni-code')">💻 omni-code</button>
+                            <button class="btn secondary" onclick="runSim('omni-reason')">🧠 omni-reason</button>
+                            <button class="btn secondary" onclick="runSim('omni-free')">🆓 omni-free</button>
+                            <button class="btn secondary" onclick="runSim('omni-agent')">🤖 omni-agent</button>
+                        </div>
+
+                        <a href="/" class="btn primary">Open Full Interactive Console ➔</a>
+                    </div>
+
+                    <div>
+                        <div class="terminal-preview" id="simTerminal">
+[SYSTEM] Ready for simulation.
+Click any alias above to inspect real-time routing path.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Developer Integration Snippets -->
+        <section class="container" id="api">
+            <div class="section-header">
+                <div class="section-tag">DEVELOPER INTEGRATION</div>
+                <h2 class="section-title">Connect Any Agent or Tool in 30 Seconds</h2>
+                <p class="section-desc">Fully compatible with the standard OpenAI API specification.</p>
+            </div>
+
+            <div class="code-box">
+                <div class="code-tabs">
+                    <div class="code-tab active" onclick="switchSnippet('python', this)">Python SDK</div>
+                    <div class="code-tab" onclick="switchSnippet('hermes', this)">Hermes Agent Config</div>
+                    <div class="code-tab" onclick="switchSnippet('curl', this)">cURL</div>
+                    <div class="code-tab" onclick="switchSnippet('cursor', this)">Cursor / Cline IDE</div>
+                </div>
+
+                <div class="code-body" id="snippetBody">from openai import OpenAI
+
+client = OpenAI(
+    base_url="http://localhost:3000/v1",
+    api_key="your_local_key"
+)
+
+response = client.chat.completions.create(
+    model="omni-code",
+    messages=[{"role": "user", "content": "Build an async queue in JS."}]
+)
+print(response.choices[0].message.content)</div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="site-footer container">
+        <div style="margin-bottom: 12px;">
+            <strong>AI Command Center</strong> — Built for Developers, Hackathons, and Autonomous Agents.
+        </div>
+        <div>
+            Repository: <a href="https://github.com/Bructi/AI-COMMAND-CENTER" target="_blank" style="color: #818cf8; text-decoration: none;">github.com/Bructi/AI-COMMAND-CENTER</a>
+        </div>
+    </footer>
+
+    <script>
+        const snippets = {
+            python: `from openai import OpenAI
+
+client = OpenAI(
+    base_url="http://localhost:3000/v1",
+    api_key="your_local_key"
+)
+
+response = client.chat.completions.create(
+    model="omni-code",
+    messages=[{"role": "user", "content": "Build an async queue in JS."}]
+)
+print(response.choices[0].message.content)`,
+
+            hermes: `{\n  "provider": "custom",\n  "base_url": "http://localhost:3000/v1",\n  "api_key": "YOUR_COMMAND_CENTER_API_KEY",\n  "model": "omni-code",\n  "fallback_model": "omni-fast"\n}`,
+
+            curl: `curl -X POST http://localhost:3000/v1/chat/completions \\\n  -H "Content-Type: application/json" \\\n  -d '{\n    "model": "omni-fast",\n    "messages": [{"role": "user", "content": "Hello Command Center!"}]\n  }'`,
+
+            cursor: `API Type: OpenAI Compatible\nBase URL: http://localhost:3000/v1\nAPI Key: none (or your local key)\nModel ID: omni-code`
+        };
+
+        function switchSnippet(key, tabEl) {
+            document.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+            tabEl.classList.add('active');
+            document.getElementById('snippetBody').innerText = snippets[key];
+        }
+
+        async function runSim(alias) {
+            const term = document.getElementById('simTerminal');
+            term.innerText = `[ROUTER] Evaluating dynamic path for "${alias}"...`;
+
+            try {
+                const res = await fetch('/api/routing/simulate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ model: alias })
+                });
+                const data = await res.json();
+
+                let out = `⚡ ROUTING SIMULATION: "${data.requested}"\n`;
+                out += `──────────────────────────────────────────────\n`;
+                if (data.resolvedModel) {
+                    out += `✅ Primary Model:   ${data.resolvedModel.id}\n`;
+                    out += `   Provider:        ${data.resolvedModel.provider_id}\n`;
+                    out += `   Latency / Score: ${data.resolvedModel.latency || 0}ms | Score: ${data.resolvedModel.score || 0}\n`;
+                    out += `   Assigned Roles:  ${data.resolvedModel.roles || 'GENERAL'}\n`;
+                } else {
+                    out += `❌ No active healthy model match.\n`;
+                }
+                out += `\n🛡️ Fallback Path:\n`;
+                if (data.fallbackChain && data.fallbackChain.length > 0) {
+                    data.fallbackChain.forEach((f, i) => {
+                        out += `   [Fallback ${i+1}] -> ${f.id} (${f.latency || 0}ms)\n`;
+                    });
+                } else {
+                    out += `   (Automatic multi-provider recovery)\n`;
+                }
+                term.innerText = out;
+            } catch (e) {
+                term.innerText = `Simulation failed: ${e.message}`;
+            }
+        }
+
+        function toggleTheme() {
+            const isLight = document.body.classList.toggle('theme-light');
+            document.getElementById('landingThemeBtn').innerText = isLight ? '☀️ Light' : '🌙 Dark';
+            localStorage.setItem('ai_cc_theme', isLight ? 'light' : 'dark');
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const saved = localStorage.getItem('ai_cc_theme');
+            if (saved === 'light') {
+                document.body.classList.add('theme-light');
+                const btn = document.getElementById('landingThemeBtn');
+                if (btn) btn.innerText = '☀️ Light';
+            }
+            // Fetch live counts for stats
+            fetch('/api/models').then(r => r.json()).then(data => {
+                if (data.count) {
+                    document.getElementById('stModelCount').innerText = data.count;
+                    const healthy = data.models.filter(m => m.status.includes('HEALTHY')).length;
+                    document.getElementById('stHealthyCount').innerText = healthy;
+                }
+            }).catch(() => {});
+        });
+    </script>
+</body>
+</html>
