@@ -13,16 +13,28 @@ const ragEngine = require('./rag/RagEngine');
 const app = express();
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-app.use(express.static(path.join(__dirname, '../public')));
 
-// Landing Page & App Entry Points
+// 1. Root '/' defaults to the Landing Page
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, '../public/landing.html'));
+});
+
+// 2. '/landing' alias for the Landing Page
 app.get('/landing', (req, res) => {
     res.sendFile(path.join(__dirname, '../public/landing.html'));
 });
 
+// 3. '/app' and '/dashboard' serve the full AI Command Center Console
 app.get('/app', (req, res) => {
     res.sendFile(path.join(__dirname, '../public/index.html'));
 });
+
+app.get('/dashboard', (req, res) => {
+    res.sendFile(path.join(__dirname, '../public/index.html'));
+});
+
+// 4. Static assets (disable automatic index.html serving on root)
+app.use(express.static(path.join(__dirname, '../public'), { index: false }));
 
 const PORT = process.env.PORT || 3000;
 
