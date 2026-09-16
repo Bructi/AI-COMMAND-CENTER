@@ -1,0 +1,3012 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Command Center // Personal Infrastructure Core</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+    <style>
+        :root {
+            --bg-base: #080b11;
+            --bg-surface: #0f172a;
+            --bg-card: rgba(17, 24, 39, 0.85);
+            --bg-card-hover: rgba(30, 41, 59, 0.9);
+            --border: #1e293b;
+            --border-glow: rgba(99, 102, 241, 0.35);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --text-dim: #64748b;
+            
+            --accent: #6366f1;
+            --accent-hover: #4f46e5;
+            --accent-glow: rgba(99, 102, 241, 0.25);
+            
+            --cyan: #06b6d4;
+            --cyan-glow: rgba(6, 182, 212, 0.2);
+            --healthy: #10b981;
+            --healthy-bg: rgba(16, 185, 129, 0.12);
+            --healthy-border: rgba(16, 185, 129, 0.3);
+            
+            --degraded: #f59e0b;
+            --degraded-bg: rgba(245, 158, 11, 0.12);
+            --degraded-border: rgba(245, 158, 11, 0.3);
+            
+            --failed: #ef4444;
+            --failed-bg: rgba(239, 68, 68, 0.12);
+            --failed-border: rgba(239, 68, 68, 0.3);
+            
+            --unknown: #64748b;
+            --purple: #a855f7;
+            --purple-glow: rgba(168, 85, 247, 0.2);
+            --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "JetBrains Mono", monospace;
+            --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", "Helvetica Neue", sans-serif;
+        }
+
+        /* Light Theme Override */
+        body.theme-light {
+            --bg-base: #f1f5f9;
+            --bg-surface: #ffffff;
+            --bg-card: rgba(255, 255, 255, 0.92);
+            --bg-card-hover: #ffffff;
+            --border: #cbd5e1;
+            --border-glow: rgba(99, 102, 241, 0.2);
+            --text-main: #0f172a;
+            --text-muted: #475569;
+            --text-dim: #64748b;
+            
+            --accent: #4f46e5;
+            --accent-hover: #4338ca;
+            --accent-glow: rgba(79, 70, 229, 0.15);
+            
+            --cyan: #0284c7;
+            --cyan-glow: rgba(2, 132, 199, 0.15);
+            
+            --healthy: #059669;
+            --healthy-bg: #ecfdf5;
+            --healthy-border: #a7f3d0;
+            
+            --degraded: #d97706;
+            --degraded-bg: #fffbeb;
+            --degraded-border: #fde68a;
+            
+            --failed: #dc2626;
+            --failed-bg: #fef2f2;
+            --failed-border: #fecaca;
+        }
+
+        body.theme-light .top-hud {
+            background: rgba(255, 255, 255, 0.9);
+            border-bottom-color: #e2e8f0;
+        }
+
+        body.theme-light .brand-title {
+            color: #0f172a;
+        }
+
+        body.theme-light .nav-tabs {
+            background: #ffffff;
+            border-bottom-color: #e2e8f0;
+        }
+
+        body.theme-light .nav-tab:hover {
+            background: rgba(0, 0, 0, 0.04);
+            color: #0f172a;
+        }
+
+        body.theme-light .nav-tab .tab-badge {
+            background: #e2e8f0;
+            color: #475569;
+        }
+
+        body.theme-light .card {
+            background: #ffffff;
+            border-color: #e2e8f0;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+        }
+
+        body.theme-light .card:hover {
+            border-color: #cbd5e1;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+        }
+
+        body.theme-light th {
+            background: #f8fafc;
+            color: #64748b;
+            border-bottom-color: #e2e8f0;
+        }
+
+        body.theme-light td {
+            border-bottom-color: #f1f5f9;
+        }
+
+        body.theme-light input[type="text"], 
+        body.theme-light input[type="password"], 
+        body.theme-light input[type="number"], 
+        body.theme-light select, 
+        body.theme-light textarea {
+            background: #ffffff;
+            border-color: #cbd5e1;
+            color: #0f172a;
+        }
+
+        body.theme-light .chat-container {
+            background: #ffffff;
+            border-color: #e2e8f0;
+        }
+
+        body.theme-light .chat-msg.assistant {
+            background: #f8fafc;
+            border-color: #e2e8f0;
+            color: #0f172a;
+        }
+
+        body.theme-light .chat-input-bar {
+            background: #ffffff;
+            border-top-color: #e2e8f0;
+        }
+
+        body.theme-light .terminal-box {
+            background: #0f172a;
+            color: #a7f3d0;
+        }
+
+        body.theme-light .modal {
+            background: #ffffff;
+            border-color: #e2e8f0;
+            color: #0f172a;
+        }
+
+        body.theme-light .modal-title {
+            color: #0f172a;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            color: var(--text-main);
+            font-family: var(--font-sans);
+            line-height: 1.5;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 15% 15%, rgba(99, 102, 241, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 85% 85%, rgba(6, 182, 212, 0.06) 0%, transparent 40%);
+            background-attachment: fixed;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg-base); }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+        /* Top HUD Bar */
+        .top-hud {
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+            padding: 12px 24px;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .hud-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #6366f1, #06b6d4);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            box-shadow: 0 0 15px var(--accent-glow);
+        }
+
+        .brand-title {
+            font-size: 1.05rem;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .brand-badge {
+            background: rgba(99, 102, 241, 0.2);
+            color: #818cf8;
+            border: 1px solid rgba(99, 102, 241, 0.4);
+            font-size: 0.65rem;
+            font-weight: 700;
+            padding: 1px 6px;
+            border-radius: 4px;
+            font-family: var(--font-mono);
+            letter-spacing: 0.5px;
+        }
+
+        .hud-metrics {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .metric-pill {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(30, 41, 59, 0.6);
+            border: 1px solid var(--border);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+        }
+
+        .metric-label {
+            color: var(--text-dim);
+            font-weight: 500;
+            text-transform: uppercase;
+            font-size: 0.7rem;
+            letter-spacing: 0.5px;
+        }
+
+        .metric-val {
+            font-weight: 700;
+            font-family: var(--font-mono);
+            color: var(--text-main);
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--healthy);
+            box-shadow: 0 0 8px var(--healthy);
+            animation: pulse-green 2s infinite;
+        }
+
+        @keyframes pulse-green {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+        }
+
+        /* Navigation Bar */
+        .nav-tabs {
+            background: rgba(11, 15, 25, 0.95);
+            border-bottom: 1px solid var(--border);
+            padding: 0 24px;
+            display: flex;
+            gap: 4px;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+
+        .nav-tab {
+            padding: 12px 16px;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            font-weight: 600;
+            border-bottom: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            user-select: none;
+        }
+
+        .nav-tab:hover {
+            color: var(--text-main);
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .nav-tab.active {
+            color: #818cf8;
+            border-bottom-color: var(--accent);
+            background: rgba(99, 102, 241, 0.06);
+        }
+
+        .nav-tab .tab-badge {
+            background: #1e293b;
+            color: var(--text-muted);
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-family: var(--font-mono);
+        }
+
+        .nav-tab.active .tab-badge {
+            background: var(--accent);
+            color: white;
+        }
+
+        /* Main Container */
+        .app-content {
+            max-width: 1400px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 24px;
+            flex: 1;
+        }
+
+        .tab-pane {
+            display: none;
+            animation: fadeIn 0.25s ease-out;
+        }
+
+        .tab-pane.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Cards & Grid */
+        .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+        .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+        .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+
+        @media (max-width: 1024px) {
+            .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+        }
+
+        .card {
+            background: var(--bg-card);
+            backdrop-filter: blur(8px);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card:hover {
+            border-color: rgba(99, 102, 241, 0.4);
+            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .card-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        /* Buttons */
+        button, .btn {
+            background: #1e293b;
+            color: var(--text-main);
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 8px 16px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-decoration: none;
+            user-select: none;
+        }
+
+        button:hover, .btn:hover {
+            background: #334155;
+            border-color: #475569;
+            transform: translateY(-1px);
+        }
+
+        button:active, .btn:active {
+            transform: translateY(0);
+        }
+
+        button.primary, .btn.primary {
+            background: linear-gradient(135deg, #6366f1, #4f46e5);
+            color: white;
+            border-color: #6366f1;
+            box-shadow: 0 2px 10px var(--accent-glow);
+        }
+
+        button.primary:hover, .btn.primary:hover {
+            background: linear-gradient(135deg, #4f46e5, #4338ca);
+            box-shadow: 0 4px 15px var(--accent-glow);
+        }
+
+        button.success, .btn.success {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            border-color: #10b981;
+            box-shadow: 0 2px 10px rgba(16, 185, 129, 0.3);
+        }
+
+        button.danger, .btn.danger {
+            background: rgba(239, 68, 68, 0.15);
+            color: #ef4444;
+            border-color: rgba(239, 68, 68, 0.3);
+        }
+
+        button.danger:hover, .btn.danger:hover {
+            background: #ef4444;
+            color: white;
+        }
+
+        button.sm { padding: 4px 10px; font-size: 0.75rem; border-radius: 6px; }
+        button.lg { padding: 12px 24px; font-size: 0.95rem; }
+
+        /* Form Controls */
+        input[type="text"], input[type="password"], input[type="number"], select, textarea {
+            width: 100%;
+            background: #0b0f19;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 9px 12px;
+            color: var(--text-main);
+            font-family: inherit;
+            font-size: 0.85rem;
+            outline: none;
+            transition: all 0.15s ease;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        /* Tables */
+        .table-responsive {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow-x: auto;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        th {
+            background: rgba(15, 23, 42, 0.95);
+            color: var(--text-dim);
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        td {
+            padding: 12px 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            font-size: 0.85rem;
+            vertical-align: middle;
+        }
+
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: rgba(255, 255, 255, 0.02); }
+
+        /* Status & Badges */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            font-family: var(--font-mono);
+            background: #1e293b;
+            color: var(--text-muted);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .badge-healthy {
+            background: var(--healthy-bg);
+            color: var(--healthy);
+            border-color: var(--healthy-border);
+        }
+
+        .badge-degraded {
+            background: var(--degraded-bg);
+            color: var(--degraded);
+            border-color: var(--degraded-border);
+        }
+
+        .badge-failed {
+            background: var(--failed-bg);
+            color: var(--failed);
+            border-color: var(--failed-border);
+        }
+
+        .badge-free {
+            background: rgba(6, 182, 212, 0.15);
+            color: #22d3ee;
+            border-color: rgba(6, 182, 212, 0.3);
+        }
+
+        .badge-paid {
+            background: rgba(168, 85, 247, 0.15);
+            color: #c084fc;
+            border-color: rgba(168, 85, 247, 0.3);
+        }
+
+        .badge-role {
+            background: rgba(99, 102, 241, 0.15);
+            color: #a5b4fc;
+            border-color: rgba(99, 102, 241, 0.3);
+        }
+
+        /* Switch Toggle */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+        }
+
+        .switch input { opacity: 0; width: 0; height: 0; }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #334155;
+            transition: .3s;
+            border-radius: 24px;
+            border: 1px solid #475569;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .3s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: #10b981;
+            border-color: #059669;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(20px);
+        }
+
+        /* Filter Toolbar */
+        .toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .toolbar-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        /* Modal Overlay */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(8px);
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+            animation: modalIn 0.2s ease-out;
+        }
+
+        @keyframes modalIn {
+            from { opacity: 0; transform: scale(0.96); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .modal {
+            background: #0f172a;
+            border: 1px solid #334155;
+            border-radius: 14px;
+            width: 100%;
+            max-width: 650px;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+            padding: 24px;
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 18px;
+            padding-bottom: 14px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .modal-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: var(--text-dim);
+            font-size: 1.25rem;
+            cursor: pointer;
+            padding: 4px;
+        }
+
+        .close-btn:hover {
+            color: #fff;
+            transform: none;
+        }
+
+        /* Code & Pre Blocks */
+        pre, code {
+            font-family: var(--font-mono);
+        }
+
+        pre {
+            background: #06090f;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 14px;
+            color: #38bdf8;
+            font-size: 0.82rem;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        /* Toast Notifications */
+        #toast-container {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: none;
+        }
+
+        .toast {
+            background: #1e293b;
+            color: #fff;
+            border: 1px solid #334155;
+            padding: 12px 18px;
+            border-radius: 8px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+            font-size: 0.85rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            pointer-events: auto;
+            animation: slideUp 0.25s ease-out;
+            max-width: 380px;
+        }
+
+        .toast.toast-success { border-color: var(--healthy); color: #a7f3d0; background: #064e3b; }
+        .toast.toast-error { border-color: var(--failed); color: #fecaca; background: #7f1d1d; }
+        .toast.toast-info { border-color: var(--cyan); color: #cffafe; background: #083344; }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Pulse & Glow Effects */
+        .glow-accent {
+            box-shadow: 0 0 20px var(--accent-glow);
+        }
+
+        /* Chat / Playground Components */
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            height: 600px;
+            background: #080b11;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 18px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .chat-msg {
+            max-width: 80%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .chat-msg.user {
+            align-self: flex-end;
+            background: linear-gradient(135deg, #6366f1, #4f46e5);
+            color: white;
+            border-bottom-right-radius: 2px;
+        }
+
+        .chat-msg.assistant {
+            align-self: flex-start;
+            background: #1e293b;
+            color: var(--text-main);
+            border: 1px solid #334155;
+            border-bottom-left-radius: 2px;
+        }
+
+        .chat-msg.system {
+            align-self: center;
+            background: rgba(245, 158, 11, 0.15);
+            color: #fcd34d;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            font-size: 0.8rem;
+            max-width: 90%;
+            text-align: center;
+        }
+
+        .chat-input-bar {
+            padding: 14px;
+            background: #0f172a;
+            border-top: 1px solid var(--border);
+            display: flex;
+            gap: 10px;
+        }
+
+        /* Terminal-like log monitor */
+        .terminal-box {
+            background: #05070c;
+            border: 1px solid #1e293b;
+            border-radius: 8px;
+            padding: 14px;
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            color: #a7f3d0;
+            max-height: 380px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- TOP MISSION CONTROL HUD -->
+    <header class="top-hud">
+        <div class="hud-brand">
+            <div class="brand-icon">⚡</div>
+            <div>
+                <div class="brand-title">
+                    AI COMMAND CENTER
+                    <span class="brand-badge">PRO v2.5</span>
+                </div>
+                <div style="font-size: 0.72rem; color: var(--text-dim); font-family: var(--font-mono);">
+                    ROUTER CORE // OPENAI API COMPATIBLE
+                </div>
+            </div>
+        </div>
+
+        <div class="hud-metrics">
+            <div class="metric-pill">
+                <span class="status-dot" id="hudStatusDot"></span>
+                <div>
+                    <div class="metric-label">System Core</div>
+                    <div class="metric-val" id="hudCoreStatus" style="color: var(--healthy);">ONLINE</div>
+                </div>
+            </div>
+
+            <div class="metric-pill">
+                <div>
+                    <div class="metric-label">Active Providers</div>
+                    <div class="metric-val" id="hudActiveProviders">0 / 0</div>
+                </div>
+            </div>
+
+            <div class="metric-pill">
+                <div>
+                    <div class="metric-label">Healthy Models</div>
+                    <div class="metric-val" id="hudHealthyModels" style="color: #38bdf8;">0</div>
+                </div>
+            </div>
+
+            <div class="metric-pill">
+                <div>
+                    <div class="metric-label">Avg Latency</div>
+                    <div class="metric-val" id="hudAvgLatency">0ms</div>
+                </div>
+            </div>
+
+            <div class="metric-pill">
+                <div>
+                    <div class="metric-label">Est. Savings</div>
+                    <div class="metric-val" id="hudSavings" style="color: var(--healthy);">$0.00</div>
+                </div>
+            </div>
+
+            <div class="metric-pill">
+                <div>
+                    <div class="metric-label">Cloud Drive</div>
+                    <div class="metric-val" id="hudDriveStatus" style="color: var(--text-dim);">Checking...</div>
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 8px;">
+                <button class="primary sm" onclick="runGlobalDiscovery()" title="Discover all models across enabled providers">
+                    🔍 Discover
+                </button>
+                <button class="success sm" onclick="runGlobalHealthCheck()" title="Health check all models in background">
+                    ⚡ Test Health
+                </button>
+                <button class="sm" onclick="openDoctorTab()" style="border-color: #6366f1; color: #a5b4fc;">
+                    🩺 Doctor
+                </button>
+                <button class="sm" id="themeToggleBtn" onclick="toggleTheme()" title="Toggle Light / Dark Theme">
+                    🌙 Dark
+                </button>
+                <button class="sm" onclick="downloadStateBackup()" title="Download Full System State Backup JSON">
+                    💾 Backup
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- NAVIGATION TABS -->
+    <nav class="nav-tabs">
+        <div class="nav-tab active" onclick="switchTab('tab-overview')">
+            <span>🚀 Mission Control</span>
+        </div>
+        <div class="nav-tab" onclick="switchTab('tab-models')">
+            <span>🤖 Model Matrix</span>
+            <span class="tab-badge" id="tabModelBadge">0</span>
+        </div>
+        <div class="nav-tab" onclick="switchTab('tab-providers')">
+            <span>⚡ Providers Hub</span>
+            <span class="tab-badge" id="tabProviderBadge">0</span>
+        </div>
+        <div class="nav-tab" onclick="switchTab('tab-routing')">
+            <span>🔀 Routing & Aliases</span>
+        </div>
+        <div class="nav-tab" onclick="switchTab('tab-playground')">
+            <span>💬 Playground & Arena</span>
+        </div>
+        <div class="nav-tab" onclick="switchTab('tab-benchmarks')">
+            <span>🧪 Benchmark Lab</span>
+        </div>
+        <div class="nav-tab" onclick="switchTab('tab-knowledge')">
+            <span>📚 Knowledge & Drive</span>
+        </div>
+        <div class="nav-tab" onclick="switchTab('tab-doctor')">
+            <span>🩺 Provider Doctor</span>
+        </div>
+        <div class="nav-tab" onclick="switchTab('tab-logs')">
+            <span>📜 Telemetry Logs</span>
+        </div>
+        <div class="nav-tab" onclick="switchTab('tab-api')">
+            <span>🔌 API & Integrations</span>
+        </div>
+    </nav>
+
+    <!-- MAIN VIEW CONTAINER -->
+    <main class="app-content">
+
+        <!-- LIVE HEALTH CHECK PROGRESS BANNER -->
+        <div id="healthJobBanner" style="display: none; background: rgba(15, 23, 42, 0.95); border: 1px solid #6366f1; border-radius: 12px; padding: 14px 20px; margin-bottom: 24px; box-shadow: 0 0 20px rgba(99, 102, 241, 0.2);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <div style="font-weight: 700; color: #fff; display: flex; align-items: center; gap: 8px;">
+                    <span class="status-dot" style="background:#6366f1; box-shadow:0 0 8px #6366f1;"></span>
+                    <span>⚡ Health Engine Testing In Progress...</span>
+                </div>
+                <div style="font-family: var(--font-mono); font-size: 0.85rem; color: #38bdf8;" id="healthJobCounters">
+                    0 / 0 tested
+                </div>
+            </div>
+            <div style="width: 100%; height: 8px; background: #1e293b; border-radius: 4px; overflow: hidden; margin-bottom: 10px;">
+                <div id="healthJobProgressBar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #6366f1, #06b6d4, #10b981); transition: width 0.3s ease;"></div>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-dim); font-family: var(--font-mono);">
+                <div id="healthJobStats">🟢 0 Healthy | 🟡 0 Degraded | 🔴 0 Failed</div>
+                <div id="healthJobCurrent" style="color: #a5b4fc; max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Probing...</div>
+            </div>
+        </div>
+
+        <!-- ============================================================ -->
+        <!-- 1. MISSION CONTROL OVERVIEW -->
+        <!-- ============================================================ -->
+        <section id="tab-overview" class="tab-pane active">
+            <div class="grid-4" style="margin-bottom: 24px;">
+                <div class="card">
+                    <div class="metric-label" style="margin-bottom: 6px;">Total Requests Handled</div>
+                    <div style="font-size: 2rem; font-weight: 800; font-family: var(--font-mono); color: #fff;" id="ovTotalReqs">0</div>
+                    <div style="font-size: 0.75rem; color: var(--healthy); margin-top: 4px;" id="ovSuccessRate">100% Success Rate</div>
+                </div>
+                <div class="card">
+                    <div class="metric-label" style="margin-bottom: 6px;">Active Usable Pool</div>
+                    <div style="font-size: 2rem; font-weight: 800; font-family: var(--font-mono); color: #38bdf8;" id="ovHealthyPool">0</div>
+                    <div style="font-size: 0.75rem; color: var(--text-dim); margin-top: 4px;" id="ovTotalPool">across 0 registered models</div>
+                </div>
+                <div class="card">
+                    <div class="metric-label" style="margin-bottom: 6px;">Average Response Latency</div>
+                    <div style="font-size: 2rem; font-weight: 800; font-family: var(--font-mono); color: #a7f3d0;" id="ovLatency">0ms</div>
+                    <div style="font-size: 0.75rem; color: var(--text-dim); margin-top: 4px;" id="ovLatencyMinMax">Min: 0ms | Max: 0ms</div>
+                </div>
+                <div class="card">
+                    <div class="metric-label" style="margin-bottom: 6px;">Free Models Pool</div>
+                    <div style="font-size: 2rem; font-weight: 800; font-family: var(--font-mono); color: #facc15;" id="ovFreeCount">0</div>
+                    <div style="font-size: 0.75rem; color: var(--text-dim); margin-top: 4px;">Zero token cost available</div>
+                </div>
+            </div>
+
+            <div class="grid-2" style="margin-bottom: 24px;">
+                <!-- Live Routing Quick Simulator -->
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">⚡ Live Route Simulator & Fallback Inspector</div>
+                        <span class="badge badge-role">Real-time Path</span>
+                    </div>
+                    <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 14px;">
+                        Simulate routing for any virtual alias or model to preview chosen provider, fallback order, and active status.
+                    </p>
+                    <div style="display: flex; gap: 10px; margin-bottom: 14px;">
+                        <select id="simAliasSelect" style="flex: 1;">
+                            <option value="omni-fast">⚡ omni-fast (Fast Mode / Low Latency)</option>
+                            <option value="omni-code">💻 omni-code (Coding Role / Quality Mode)</option>
+                            <option value="omni-reason">🧠 omni-reason (Reasoning Role / Quality Mode)</option>
+                            <option value="omni-vision">👁️ omni-vision (Multimodal / Vision Role)</option>
+                            <option value="omni-agent">🤖 omni-agent (Autonomous Agent Role)</option>
+                            <option value="omni-free">🆓 omni-free (Strict Free Models Only)</option>
+                            <option value="omni-best">⭐ omni-best (Highest Scoring Model)</option>
+                        </select>
+                        <button class="primary" onclick="simulateRouting()">Test Route</button>
+                    </div>
+                    <div id="simResultBox" class="terminal-box" style="height: 180px;">
+// Click "Test Route" to simulate intelligent routing decision & fallback chain.
+                    </div>
+                </div>
+
+                <!-- Provider Health Pulse -->
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">📡 Provider Status Pulse</div>
+                        <button class="sm" onclick="switchTab('tab-providers')">Manage All</button>
+                    </div>
+                    <div id="ovProviderPulseList" style="display: flex; flex-direction: column; gap: 10px;">
+                        <!-- Injected dynamically -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Top Performing Models Table -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">🏆 Top Recommended Active Models</div>
+                    <button class="sm" onclick="switchTab('tab-models')">View All in Matrix</button>
+                </div>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Model ID</th>
+                                <th>Provider</th>
+                                <th>Status</th>
+                                <th>Score</th>
+                                <th>Latency</th>
+                                <th>Roles</th>
+                                <th>Cost</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ovTopModelsBody">
+                            <tr><td colspan="8" style="text-align:center; color: var(--text-dim);">Loading models...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ============================================================ -->
+        <!-- 2. MODEL MATRIX -->
+        <!-- ============================================================ -->
+        <section id="tab-models" class="tab-pane">
+            <div class="toolbar">
+                <div class="toolbar-group">
+                    <input type="text" id="modelSearch" placeholder="🔍 Search model by ID, name, or role..." style="width: 280px;" oninput="renderModelsTable()">
+                    <select id="modelStatusFilter" style="width: 150px;" onchange="renderModelsTable()">
+                        <option value="ALL">All Statuses</option>
+                        <option value="HEALTHY">🟢 Healthy Only</option>
+                        <option value="DEGRADED">🟡 Degraded</option>
+                        <option value="FAILED">🔴 Failed</option>
+                        <option value="UNKNOWN">⚪ Unknown</option>
+                    </select>
+                    <select id="modelProviderFilter" style="width: 150px;" onchange="renderModelsTable()">
+                        <option value="ALL">All Providers</option>
+                    </select>
+                    <select id="modelCostFilter" style="width: 130px;" onchange="renderModelsTable()">
+                        <option value="ALL">All Pricing</option>
+                        <option value="FREE">🆓 Free Only</option>
+                        <option value="PAID">💳 Paid Only</option>
+                    </select>
+                </div>
+                <div class="toolbar-group">
+                    <button class="primary sm" onclick="runGlobalDiscovery()">🔄 Re-Discover</button>
+                    <button class="success sm" onclick="testFilteredModels()">⚡ Test Filtered</button>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Model Identifier</th>
+                            <th>Provider</th>
+                            <th>Health Status</th>
+                            <th>Score</th>
+                            <th>Roles / Capabilities</th>
+                            <th>Context</th>
+                            <th>Cost</th>
+                            <th>Latency</th>
+                            <th>Last Checked</th>
+                            <th style="text-align: right;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="modelMatrixBody">
+                        <tr><td colspan="10" style="text-align:center; color: var(--text-dim);">No models loaded yet. Click "Discover Models" to fetch.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+
+        <!-- ============================================================ -->
+        <!-- 3. PROVIDERS HUB -->
+        <!-- ============================================================ -->
+        <section id="tab-providers" class="tab-pane">
+            <div class="toolbar">
+                <div>
+                    <h3 style="font-size: 1.1rem; color: #fff;">Connected AI Providers</h3>
+                    <p style="font-size: 0.8rem; color: var(--text-muted);">Manage multi-provider API keys, base endpoints, connection tests, and model extraction.</p>
+                </div>
+                <button class="primary" onclick="openAddProviderModal()">➕ Add Custom Provider</button>
+            </div>
+
+            <div class="grid-3" id="providersGrid" style="margin-bottom: 30px;">
+                <!-- Dynamically injected -->
+            </div>
+        </section>
+
+
+        <!-- ============================================================ -->
+        <!-- 4. ROUTING & ALIASES -->
+        <!-- ============================================================ -->
+        <section id="tab-routing" class="tab-pane">
+            <div class="toolbar">
+                <div>
+                    <h3 style="font-size: 1.1rem; color: #fff;">Dynamic Aliases & Intelligent Routing</h3>
+                    <p style="font-size: 0.8rem; color: var(--text-muted);">Map smart aliases to roles and routing algorithms. Clients like Hermes or Cursor can call aliases without worrying about dead models.</p>
+                </div>
+                <button class="primary" onclick="openAddAliasModal()">➕ Add / Edit Alias</button>
+            </div>
+
+            <div class="grid-3" id="aliasesGrid" style="margin-bottom: 24px;">
+                <!-- Injected dynamically -->
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">🎛️ Routing Mode Definitions</div>
+                </div>
+                <div class="grid-4" style="font-size: 0.82rem;">
+                    <div style="background: rgba(255,255,255,0.02); padding: 12px; border-radius: 8px; border: 1px solid var(--border);">
+                        <div style="font-weight: 700; color: #38bdf8; margin-bottom: 4px;">⚡ FAST MODE</div>
+                        <p style="color: var(--text-muted);">Optimizes for lowest latency (ms). Selects fastest responding healthy provider (Cerebras, Groq, Fast OpenRouter).</p>
+                    </div>
+                    <div style="background: rgba(255,255,255,0.02); padding: 12px; border-radius: 8px; border: 1px solid var(--border);">
+                        <div style="font-weight: 700; color: #a855f7; margin-bottom: 4px;">🧠 QUALITY MODE</div>
+                        <p style="color: var(--text-muted);">Optimizes for score and context length. Routes to highest capability reasoning and coding models.</p>
+                    </div>
+                    <div style="background: rgba(255,255,255,0.02); padding: 12px; border-radius: 8px; border: 1px solid var(--border);">
+                        <div style="font-weight: 700; color: #10b981; margin-bottom: 4px;">⚖️ BALANCED MODE</div>
+                        <p style="color: var(--text-muted);">Default mode. Multiplies capability score with latency performance for optimal everyday development.</p>
+                    </div>
+                    <div style="background: rgba(255,255,255,0.02); padding: 12px; border-radius: 8px; border: 1px solid var(--border);">
+                        <div style="font-weight: 700; color: #facc15; margin-bottom: 4px;">🆓 FREE MODE</div>
+                        <p style="color: var(--text-muted);">Strict zero-token cost. Filters only verified free tier models and auto-fails over if rate limits hit.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ============================================================ -->
+        <!-- 5. PLAYGROUND & MODEL ARENA -->
+        <!-- ============================================================ -->
+        <section id="tab-playground" class="tab-pane">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <button id="pgModeSingleBtn" class="primary sm" onclick="setPlaygroundMode('single')">💬 Single Chat</button>
+                    <button id="pgModeArenaBtn" class="sm" onclick="setPlaygroundMode('arena')">⚔️ Side-by-Side Arena</button>
+                    <div style="height: 20px; width: 1px; background: var(--border); margin: 0 4px;"></div>
+                    <!-- RAG Switch -->
+                    <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 0.82rem; user-select: none; background: rgba(99,102,241,0.1); padding: 4px 10px; border-radius: 6px; border: 1px solid rgba(99,102,241,0.3);">
+                        <input type="checkbox" id="pgUseRagCheckbox" onchange="toggleRagSettings()">
+                        <span style="font-weight: 700; color: #818cf8;">📚 Enable RAG Knowledge Base</span>
+                    </label>
+                    <select id="pgRagDocSelect" style="width: 170px; display: none; padding: 4px 8px; font-size: 0.78rem;">
+                        <option value="ALL">All Documents (RAG)</option>
+                    </select>
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <button class="sm" onclick="optimizeCurrentPrompt()" title="Use AI to enhance and structure your current prompt">✨ Optimize Prompt</button>
+                    <span style="font-size: 0.8rem; color: var(--text-muted);">Persona:</span>
+                    <select id="pgPersonaSelect" style="width: 200px;" onchange="applyPersonaToPlayground()">
+                        <option value="">Default (No Persona)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Single Chat View -->
+            <div id="pgSingleView" class="grid-2">
+                <div class="chat-container">
+                    <div class="chat-messages" id="pgChatMessages">
+                        <div class="chat-msg system">
+                            💡 Welcome to Command Center Playground. Select an alias (e.g. <code>omni-fast</code>) or specific model to begin.
+                        </div>
+                    </div>
+                    <div class="chat-input-bar">
+                        <input type="text" id="pgChatInput" placeholder="Type a message or prompt..." onkeydown="if(event.key==='Enter') sendPlaygroundChat()">
+                        <button class="primary" id="pgSendBtn" onclick="sendPlaygroundChat()">Send</button>
+                        <button onclick="clearPlaygroundChat()">Clear</button>
+                    </div>
+                </div>
+
+                <div class="card" style="display: flex; flex-direction: column; gap: 14px;">
+                    <div class="card-header">
+                        <div class="card-title">⚙️ Execution Parameters</div>
+                    </div>
+                    <div>
+                        <label style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 6px;">Target Model / Alias</label>
+                        <select id="pgModelSelect">
+                            <option value="omni-fast">⚡ omni-fast (Fastest Model)</option>
+                            <option value="omni-code">💻 omni-code (Coding Specialist)</option>
+                            <option value="omni-reason">🧠 omni-reason (Reasoning Specialist)</option>
+                            <option value="omni-free">🆓 omni-free (Free Models Only)</option>
+                            <option value="omni-best">⭐ omni-best (Highest Scoring)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 6px;">System Prompt Override</label>
+                        <textarea id="pgSystemPrompt" placeholder="You are a helpful AI assistant..."></textarea>
+                    </div>
+                    <div class="grid-2">
+                        <div>
+                            <label style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 6px;">Temperature (<span id="tempVal">0.7</span>)</label>
+                            <input type="range" min="0" max="1" step="0.05" value="0.7" oninput="document.getElementById('tempVal').innerText=this.value" id="pgTemp">
+                        </div>
+                        <div>
+                            <label style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 6px;">Max Tokens</label>
+                            <input type="number" value="1000" id="pgMaxTokens">
+                        </div>
+                    </div>
+                    <div style="background: rgba(255,255,255,0.02); padding: 12px; border-radius: 8px; border: 1px solid var(--border); margin-top: auto;">
+                        <div style="font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase;">Last Response Telemetry</div>
+                        <div id="pgTelemetry" style="font-family: var(--font-mono); font-size: 0.8rem; color: #38bdf8; margin-top: 4px;">
+                            Latency: - | Routed: -
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Arena Mode View -->
+            <div id="pgArenaView" style="display: none;">
+                <div class="grid-2" style="margin-bottom: 16px;">
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">Model Candidate A</div>
+                        </div>
+                        <select id="arenaModelA" style="margin-bottom: 10px;">
+                            <option value="omni-fast">⚡ omni-fast</option>
+                        </select>
+                        <div class="terminal-box" id="arenaOutputA" style="height: 320px; color: #38bdf8;">
+Waiting for Arena prompt...
+                        </div>
+                        <div id="arenaStatsA" style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-dim); margin-top: 8px;">
+                            Latency: -
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <div class="card-title">Model Candidate B</div>
+                        </div>
+                        <select id="arenaModelB" style="margin-bottom: 10px;">
+                            <option value="omni-code">💻 omni-code</option>
+                        </select>
+                        <div class="terminal-box" id="arenaOutputB" style="height: 320px; color: #c084fc;">
+Waiting for Arena prompt...
+                        </div>
+                        <div id="arenaStatsB" style="font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-dim); margin-top: 8px;">
+                            Latency: -
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div style="display: flex; gap: 10px;">
+                        <input type="text" id="arenaPromptInput" placeholder="Enter a challenging prompt to benchmark both models simultaneously..." style="flex: 1;" onkeydown="if(event.key==='Enter') runArenaDuel()">
+                        <button class="primary" id="arenaRunBtn" onclick="runArenaDuel()">⚔️ Duel Models</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ============================================================ -->
+        <!-- 6. BENCHMARK LAB -->
+        <!-- ============================================================ -->
+        <section id="tab-benchmarks" class="tab-pane">
+            <div class="toolbar">
+                <div>
+                    <h3 style="font-size: 1.1rem; color: #fff;">Model Benchmark Lab</h3>
+                    <p style="font-size: 0.8rem; color: var(--text-muted);">
+                        Evaluate models with standardized tests: Coding, Reasoning, JSON Output, Agent Constraints, & Latency. Auto-uploaded to Google Drive.
+                    </p>
+                </div>
+                <div class="toolbar-group">
+                    <select id="benchTargetModel" style="width: 240px;">
+                        <option value="">Select Model to Benchmark...</option>
+                    </select>
+                    <button class="primary" id="benchRunBtn" onclick="runSelectedBenchmark()">🧪 Run Full Benchmark</button>
+                </div>
+            </div>
+
+            <div class="grid-2" style="margin-bottom: 24px;">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">📊 Live Test Execution Stream</div>
+                    </div>
+                    <div class="terminal-box" id="benchConsole" style="height: 340px;">
+// Select a model and click "Run Full Benchmark" to start 5-phase evaluation suite.
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">🏆 Benchmark Leaderboard</div>
+                    </div>
+                    <div class="table-responsive" style="max-height: 340px;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Model</th>
+                                    <th>Score</th>
+                                    <th>Coding</th>
+                                    <th>Reasoning</th>
+                                    <th>Avg Latency</th>
+                                    <th>Drive ID</th>
+                                </tr>
+                            </thead>
+                            <tbody id="benchHistoryBody">
+                                <tr><td colspan="6" style="text-align:center; color: var(--text-dim);">No benchmark records yet.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ============================================================ -->
+        <!-- 7. KNOWLEDGE BASE & GOOGLE DRIVE -->
+        <!-- ============================================================ -->
+        <section id="tab-knowledge" class="tab-pane">
+            <div class="grid-3" style="margin-bottom: 24px;">
+                <div class="card" style="grid-column: span 2;">
+                    <div class="card-header">
+                        <div class="card-title">📚 Document Repository (RAG Knowledge Layer)</div>
+                        <span class="badge badge-role">MCP Knowledge Server</span>
+                    </div>
+                    <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 16px;">
+                        Upload project notes, documentation, PDF textbooks, or research papers. Files are backed up to your Google Drive and made queryable to agentic tools via MCP.
+                    </p>
+
+                    <div style="display: flex; gap: 10px; margin-bottom: 20px; align-items: center; background: rgba(255,255,255,0.02); padding: 14px; border-radius: 8px; border: 1px dashed var(--border);">
+                        <input type="file" id="kbFileInput" style="flex: 1;" accept=".pdf,.txt,.md,.json,.csv">
+                        <button class="primary" id="kbUploadBtn" onclick="uploadKnowledgeDoc()">☁️ Upload Document</button>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Filename</th>
+                                    <th>Size</th>
+                                    <th>RAG Chunks</th>
+                                    <th>Google Drive ID</th>
+                                    <th>Uploaded At</th>
+                                    <th style="text-align: right;">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="kbDocTableBody">
+                                <tr><td colspan="6" style="text-align:center; color: var(--text-dim);">No documents in knowledge base yet.</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">☁️ Google Drive Connection</div>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 14px;">
+                        <div id="driveStatusBanner" style="padding: 12px; border-radius: 8px; background: rgba(255,255,255,0.03); border: 1px solid var(--border);">
+                            <div style="font-weight: 600; color: #fff; margin-bottom: 4px;">Status</div>
+                            <div id="driveStatusText" style="font-size: 0.85rem; color: var(--text-dim);">Checking...</div>
+                        </div>
+
+                        <button id="driveAuthBtn" class="primary" onclick="initiateDriveAuth()">
+                            🔗 Connect Google Drive
+                        </button>
+
+                        <div style="font-size: 0.78rem; color: var(--text-dim); line-height: 1.4;">
+                            * Google Drive provides high-capacity cloud storage for evaluation logs, RAG datasets, and knowledge bases without using your 8 GB RAM laptop disk space.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RAG Search & Retrieval Sandbox -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">🔍 RAG Semantic Retrieval & Chunk Sandbox</div>
+                    <span class="badge badge-role">Live Similarity Matcher</span>
+                </div>
+                <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 14px;">
+                    Test your RAG search query against all indexed chunks to inspect relevance scores, confidence %, and extracted passages before chatbot generation.
+                </p>
+                <div style="display: flex; gap: 10px; margin-bottom: 16px;">
+                    <input type="text" id="ragSearchQuery" placeholder="Ask a question or enter keywords (e.g. 'What are the API endpoints?', 'Explain authentication')..." style="flex: 1;" onkeydown="if(event.key==='Enter') executeRagSearch()">
+                    <select id="ragSearchDocFilter" style="width: 200px;">
+                        <option value="ALL">All Documents</option>
+                    </select>
+                    <button class="primary" onclick="executeRagSearch()">🔍 Run RAG Query</button>
+                </div>
+                <div id="ragSearchResultsBox" style="display: flex; flex-direction: column; gap: 10px;">
+                    <div style="color: var(--text-dim); font-size: 0.85rem; text-align: center; padding: 20px; border: 1px dashed var(--border); border-radius: 8px;">
+                        Enter a query above to test RAG chunk extraction & relevance scoring.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ============================================================ -->
+        <!-- 8. PROVIDER DOCTOR -->
+        <!-- ============================================================ -->
+        <section id="tab-doctor" class="tab-pane">
+            <div class="toolbar">
+                <div>
+                    <h3 style="font-size: 1.1rem; color: #fff;">🩺 Provider Doctor System Diagnostics</h3>
+                    <p style="font-size: 0.8rem; color: var(--text-muted);">
+                        Comprehensive diagnostics audit across all configured providers, API credentials, endpoints, health ratios, and recommended active pool.
+                    </p>
+                </div>
+                <button class="primary" onclick="runProviderDoctor()">🩺 Run Diagnostic Scan</button>
+            </div>
+
+            <div class="grid-3" style="margin-bottom: 24px;">
+                <div class="card">
+                    <div class="metric-label">System Health Score</div>
+                    <div style="font-size: 2rem; font-weight: 800; color: var(--healthy); margin-top: 4px;" id="docOverallStatus">-</div>
+                    <div style="font-size: 0.75rem; color: var(--text-dim);" id="docHealthyRatio">Health ratio: -</div>
+                </div>
+                <div class="card">
+                    <div class="metric-label">Active Provider Nodes</div>
+                    <div style="font-size: 2rem; font-weight: 800; color: #38bdf8; margin-top: 4px;" id="docProviderCount">-</div>
+                    <div style="font-size: 0.75rem; color: var(--text-dim);">Reachable network endpoints</div>
+                </div>
+                <div class="card">
+                    <div class="metric-label">Recommended Active Pool</div>
+                    <div style="font-size: 2rem; font-weight: 800; color: #a855f7; margin-top: 4px;" id="docRecCount">-</div>
+                    <div style="font-size: 0.75rem; color: var(--text-dim);">High-scoring models for routing</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-title">📋 Diagnostic Report Breakdown</div>
+                </div>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Provider</th>
+                                <th>API Key Configured</th>
+                                <th>Network Reachability</th>
+                                <th>Ping Latency</th>
+                                <th>Discovered Models</th>
+                                <th>Diagnostic Message</th>
+                            </tr>
+                        </thead>
+                        <tbody id="docReportTableBody">
+                            <tr><td colspan="6" style="text-align:center; color: var(--text-dim);">Click "Run Diagnostic Scan" to inspect infrastructure health.</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- ============================================================ -->
+        <!-- 9. TELEMETRY LOGS -->
+        <!-- ============================================================ -->
+        <section id="tab-logs" class="tab-pane">
+            <div class="toolbar">
+                <div class="toolbar-group">
+                    <select id="logStatusFilter" onchange="fetchLogs()">
+                        <option value="ALL">All Statuses</option>
+                        <option value="SUCCESS">🟢 SUCCESS Only</option>
+                        <option value="FAILED">🔴 FAILED Only</option>
+                        <option value="FATAL">⚠️ FATAL Only</option>
+                    </select>
+                    <select id="logLimitSelect" onchange="fetchLogs()">
+                        <option value="50">Last 50 Logs</option>
+                        <option value="100">Last 100 Logs</option>
+                        <option value="200">Last 200 Logs</option>
+                    </select>
+                </div>
+                <div class="toolbar-group">
+                    <button class="sm" onclick="fetchLogs()">🔄 Refresh Logs</button>
+                    <button class="danger sm" onclick="clearLogs()">🗑️ Clear Logs</button>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Timestamp</th>
+                            <th>Requested Model / Alias</th>
+                            <th>Routed Model</th>
+                            <th>Status</th>
+                            <th>Latency</th>
+                            <th>Error Trace</th>
+                        </tr>
+                    </thead>
+                    <tbody id="logsTableBody">
+                        <tr><td colspan="6" style="text-align:center; color: var(--text-dim);">No logs recorded yet.</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+
+        <!-- ============================================================ -->
+        <!-- 10. API & HERMES INTEGRATIONS -->
+        <!-- ============================================================ -->
+        <section id="tab-api" class="tab-pane">
+            <div class="card" style="margin-bottom: 24px;">
+                <div class="card-header">
+                    <div class="card-title">📡 OpenAI-Compatible API Endpoint</div>
+                </div>
+                <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 14px;">
+                    Use this local endpoint as a drop-in replacement for OpenAI API in Hermes, Cursor, Cline/OpenCode, LangChain, or custom Python/Node scripts.
+                </p>
+                <div class="grid-2">
+                    <div>
+                        <label style="font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase;">Base URL</label>
+                        <div style="display: flex; gap: 8px; margin-top: 4px;">
+                            <input type="text" id="apiBaseUrl" readonly value="http://localhost:3000/v1">
+                            <button onclick="copyToClipboard('http://localhost:3000/v1')">📋 Copy</button>
+                        </div>
+                    </div>
+                    <div>
+                        <label style="font-size: 0.75rem; color: var(--text-dim); text-transform: uppercase;">Virtual Model Aliases</label>
+                        <div style="margin-top: 8px; display: flex; gap: 6px; flex-wrap: wrap;">
+                            <span class="badge badge-role">omni-fast</span>
+                            <span class="badge badge-role">omni-code</span>
+                            <span class="badge badge-role">omni-reason</span>
+                            <span class="badge badge-role">omni-vision</span>
+                            <span class="badge badge-role">omni-agent</span>
+                            <span class="badge badge-role">omni-free</span>
+                            <span class="badge badge-role">omni-best</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid-2">
+                <!-- Hermes Agent Configuration -->
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">🤖 Hermes AI Agent Config</div>
+                        <button class="sm" onclick="copySnippet('hermesConfig')">Copy JSON</button>
+                    </div>
+                    <pre id="hermesConfig">{
+  "provider": "custom",
+  "base_url": "http://localhost:3000/v1",
+  "api_key": "YOUR_LOCAL_KEY_OR_DUMMY",
+  "model": "omni-code",
+  "fallback_model": "omni-fast"
+}</pre>
+                </div>
+
+                <!-- Python OpenAI Client -->
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">🐍 Python SDK Snippet</div>
+                        <button class="sm" onclick="copySnippet('pythonSnippet')">Copy Code</button>
+                    </div>
+                    <pre id="pythonSnippet">from openai import OpenAI
+
+client = OpenAI(
+    base_url="http://localhost:3000/v1",
+    api_key="none"
+)
+
+response = client.chat.completions.create(
+    model="omni-fast",
+    messages=[{"role": "user", "content": "Hello Command Center!"}]
+)
+print(response.choices[0].message.content)</pre>
+                </div>
+
+                <!-- cURL Request -->
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">⚡ cURL Command</div>
+                        <button class="sm" onclick="copySnippet('curlSnippet')">Copy cURL</button>
+                    </div>
+                    <pre id="curlSnippet">curl -X POST http://localhost:3000/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "omni-fast",
+    "messages": [{"role": "user", "content": "Explain binary search in 1 sentence."}]
+  }'</pre>
+                </div>
+
+                <!-- OpenCode / Cursor Config -->
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title">🛠️ Cursor / Cline / OpenCode</div>
+                        <button class="sm" onclick="copySnippet('cursorSnippet')">Copy Config</button>
+                    </div>
+                    <pre id="cursorSnippet">API Type: OpenAI Compatible
+Base URL: http://localhost:3000/v1
+API Key: none
+Model ID: omni-code</pre>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- TOAST CONTAINER -->
+    <div id="toast-container"></div>
+
+    <!-- MODAL: ADD / EDIT CUSTOM PROVIDER -->
+    <div class="modal-overlay" id="providerModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title" id="provModalTitle">Add / Configure Provider</div>
+                <button class="close-btn" onclick="closeModal('providerModal')">&times;</button>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+                <div>
+                    <label style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 4px;">Provider ID</label>
+                    <input type="text" id="provIdInput" placeholder="e.g. 'groq', 'deepseek', 'lmstudio'">
+                </div>
+                <div>
+                    <label style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 4px;">Display Name</label>
+                    <input type="text" id="provNameInput" placeholder="e.g. 'Groq Cloud', 'Local LM Studio'">
+                </div>
+                <div>
+                    <label style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 4px;">Base URL</label>
+                    <input type="text" id="provUrlInput" placeholder="e.g. 'https://api.groq.com/openai/v1' or 'http://localhost:1234/v1'">
+                </div>
+                <div>
+                    <label style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 4px;">API Key (optional for local endpoints)</label>
+                    <input type="password" id="provKeyInput" placeholder="Enter API Key">
+                </div>
+                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 14px;">
+                    <button onclick="closeModal('providerModal')">Cancel</button>
+                    <button class="primary" onclick="saveProviderForm()">Save Provider</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: ADD / EDIT ALIAS -->
+    <div class="modal-overlay" id="aliasModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">Configure Virtual Alias</div>
+                <button class="close-btn" onclick="closeModal('aliasModal')">&times;</button>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+                <div>
+                    <label style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 4px;">Alias Name</label>
+                    <input type="text" id="aliasNameInput" placeholder="e.g. 'omni-code', 'omni-math', 'custom-fast'">
+                </div>
+                <div>
+                    <label style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 4px;">Role Requirement (Optional)</label>
+                    <select id="aliasRoleInput">
+                        <option value="">None (Any Role)</option>
+                        <option value="CODING">CODING</option>
+                        <option value="REASONING">REASONING</option>
+                        <option value="FAST">FAST</option>
+                        <option value="VISION">VISION</option>
+                        <option value="AGENT">AGENT</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 4px;">Routing Mode</label>
+                    <select id="aliasModeInput">
+                        <option value="BALANCED">BALANCED (Score & Latency)</option>
+                        <option value="FAST">FAST (Lowest Latency)</option>
+                        <option value="QUALITY">QUALITY (Highest Intelligence/Score)</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 4px;">Fixed Target Model (Optional Override)</label>
+                    <input type="text" id="aliasTargetModelInput" placeholder="Leave empty for dynamic auto-routing">
+                </div>
+                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 14px;">
+                    <button onclick="closeModal('aliasModal')">Cancel</button>
+                    <button class="primary" onclick="saveAliasForm()">Save Alias</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: EDIT MODEL ROLES -->
+    <div class="modal-overlay" id="modelEditModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">Edit Model Capabilities & Roles</div>
+                <button class="close-btn" onclick="closeModal('modelEditModal')">&times;</button>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+                <div>
+                    <label style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 4px;">Model ID</label>
+                    <input type="text" id="editModelId" readonly style="color: #38bdf8;">
+                </div>
+                <div>
+                    <label style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 4px;">Roles (comma-separated)</label>
+                    <input type="text" id="editModelRoles" placeholder="e.g. CODING,REASONING,FAST,VISION,AGENT">
+                </div>
+                <div class="grid-2">
+                    <div>
+                        <label style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 4px;">Score Override</label>
+                        <input type="number" id="editModelScore" placeholder="Score 0 - 100">
+                    </div>
+                    <div>
+                        <label style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-bottom: 4px;">Pricing Status</label>
+                        <select id="editModelFree">
+                            <option value="1">Free Tier (Zero Cost)</option>
+                            <option value="0">Paid Tier</option>
+                        </select>
+                    </div>
+                </div>
+                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 14px;">
+                    <button onclick="closeModal('modelEditModal')">Cancel</button>
+                    <button class="primary" onclick="saveModelEditForm()">Update Model</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT ENGINE -->
+    <script>
+        // Global State
+        let allModels = [];
+        let allProviders = [];
+        let allAliases = [];
+        let allPersonas = [];
+        let playgroundMessages = [];
+        let activeTab = 'tab-overview';
+
+        // Toast Helper
+        function showToast(msg, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            const icon = type === 'success' ? '✅' : (type === 'error' ? '❌' : 'ℹ️');
+            toast.innerHTML = `<span>${icon}</span> <span>${msg}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transition = 'opacity 0.3s ease';
+                setTimeout(() => toast.remove(), 300);
+            }, 3500);
+        }
+
+        // Tab Switching
+        function switchTab(tabId) {
+            activeTab = tabId;
+            document.querySelectorAll('.tab-pane').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
+
+            const targetPane = document.getElementById(tabId);
+            if (targetPane) targetPane.classList.add('active');
+
+            const tabMap = {
+                'tab-overview': 0, 'tab-models': 1, 'tab-providers': 2, 'tab-routing': 3,
+                'tab-playground': 4, 'tab-benchmarks': 5, 'tab-knowledge': 6, 'tab-doctor': 7,
+                'tab-logs': 8, 'tab-api': 9
+            };
+            const idx = tabMap[tabId];
+            if (idx !== undefined) {
+                const navTabs = document.querySelectorAll('.nav-tab');
+                if (navTabs[idx]) navTabs[idx].classList.add('active');
+            }
+
+            // Lazy-load relevant data
+            if (tabId === 'tab-logs') fetchLogs();
+            if (tabId === 'tab-doctor') runProviderDoctor();
+            if (tabId === 'tab-knowledge') fetchKnowledgeDocs();
+            if (tabId === 'tab-benchmarks') fetchBenchmarkHistory();
+        }
+
+        function openDoctorTab() {
+            switchTab('tab-doctor');
+        }
+
+        // Modal Controls
+        function openModal(id) {
+            document.getElementById(id).classList.add('active');
+        }
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+
+        // Copy Helper
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text);
+            showToast('Copied to clipboard!', 'success');
+        }
+        function copySnippet(elementId) {
+            const el = document.getElementById(elementId);
+            if (el) copyToClipboard(el.innerText);
+        }
+
+        // ============================================================
+        // DATA FETCHING & SYNCHRONIZATION
+        // ============================================================
+
+        async function fetchInitialData() {
+            await Promise.all([
+                fetchProviders(),
+                fetchModels(),
+                fetchAliases(),
+                fetchStats(),
+                fetchDriveStatus(),
+                fetchPersonas()
+            ]);
+        }
+
+        async function fetchStats() {
+            try {
+                const res = await fetch('/api/admin/stats');
+                const stats = await res.json();
+
+                document.getElementById('ovTotalReqs').innerText = stats.totalRequests || 0;
+                document.getElementById('ovLatency').innerText = (stats.avgLatency || 0) + 'ms';
+                document.getElementById('hudAvgLatency').innerText = (stats.avgLatency || 0) + 'ms';
+                document.getElementById('ovLatencyMinMax').innerText = `Min: ${stats.minLatency || 0}ms | Max: ${stats.maxLatency || 0}ms`;
+
+                const succRate = stats.totalRequests > 0 
+                    ? Math.round(((stats.successCount || 0) / stats.totalRequests) * 100)
+                    : 100;
+                document.getElementById('ovSuccessRate').innerText = `${succRate}% Success Rate`;
+
+                const estSavings = ((stats.totalRequests || 0) * 0.004).toFixed(2);
+                const hudSavings = document.getElementById('hudSavings');
+                if (hudSavings) hudSavings.innerText = `$${estSavings}`;
+            } catch (e) {
+                console.error("Failed to fetch stats", e);
+            }
+        }
+
+        async function fetchProviders() {
+            try {
+                const res = await fetch('/api/providers');
+                allProviders = await res.json();
+
+                const enabledCount = allProviders.filter(p => p.enabled).length;
+                document.getElementById('hudActiveProviders').innerText = `${enabledCount} / ${allProviders.length}`;
+                document.getElementById('tabProviderBadge').innerText = allProviders.length;
+
+                renderProvidersUI();
+                renderProviderFilter();
+            } catch (e) {
+                console.error("Failed to fetch providers", e);
+            }
+        }
+
+        async function fetchModels() {
+            try {
+                const res = await fetch('/api/models');
+                const data = await res.json();
+                allModels = data.models || [];
+
+                const healthyCount = allModels.filter(m => m.status.includes('HEALTHY')).length;
+                const freeCount = allModels.filter(m => m.is_free).length;
+
+                document.getElementById('hudHealthyModels').innerText = healthyCount;
+                document.getElementById('ovHealthyPool').innerText = healthyCount;
+                document.getElementById('ovTotalPool').innerText = `across ${allModels.length} registered models`;
+                document.getElementById('ovFreeCount').innerText = freeCount;
+                document.getElementById('tabModelBadge').innerText = allModels.length;
+
+                renderModelsTable();
+                renderOverviewPulse();
+                populateModelDropdowns();
+            } catch (e) {
+                console.error("Failed to fetch models", e);
+            }
+        }
+
+        async function fetchAliases() {
+            try {
+                const res = await fetch('/api/aliases');
+                allAliases = await res.json();
+                renderAliasesUI();
+            } catch (e) {
+                console.error("Failed to fetch aliases", e);
+            }
+        }
+
+        async function fetchPersonas() {
+            try {
+                const res = await fetch('/api/teach/personas');
+                allPersonas = await res.json();
+                const sel = document.getElementById('pgPersonaSelect');
+                sel.innerHTML = `<option value="">Default (No Persona)</option>` + 
+                    allPersonas.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+            } catch (e) {
+                console.error("Failed to fetch personas", e);
+            }
+        }
+
+        async function fetchDriveStatus() {
+            try {
+                const res = await fetch('/api/drive/status');
+                const data = await res.json();
+                const hudDrive = document.getElementById('hudDriveStatus');
+                const driveBanner = document.getElementById('driveStatusText');
+                const authBtn = document.getElementById('driveAuthBtn');
+
+                if (data.isConnected) {
+                    hudDrive.innerText = 'Connected';
+                    hudDrive.style.color = 'var(--healthy)';
+                    driveBanner.innerHTML = '<span style="color: var(--healthy); font-weight:700;">🟢 Connected & Synced</span>';
+                    authBtn.innerText = '✅ Drive Connected';
+                    authBtn.classList.remove('primary');
+                    authBtn.classList.add('success');
+                } else {
+                    hudDrive.innerText = 'Disconnected';
+                    hudDrive.style.color = 'var(--text-dim)';
+                    driveBanner.innerText = data.hasCredentials 
+                        ? 'Google OAuth credentials detected. Ready to authenticate.'
+                        : 'Credentials not in .env (add GOOGLE_CLIENT_ID).';
+                }
+            } catch (e) {
+                console.error("Drive status check failed", e);
+            }
+        }
+
+        // ============================================================
+        // RENDERING VIEWS
+        // ============================================================
+
+        function renderModelsTable() {
+            const query = (document.getElementById('modelSearch').value || '').toLowerCase();
+            const statusFilter = document.getElementById('modelStatusFilter').value;
+            const providerFilter = document.getElementById('modelProviderFilter').value;
+            const costFilter = document.getElementById('modelCostFilter').value;
+
+            const filtered = allModels.filter(m => {
+                if (query && !m.id.toLowerCase().includes(query) && !(m.roles || '').toLowerCase().includes(query)) return false;
+                if (statusFilter !== 'ALL') {
+                    if (statusFilter === 'HEALTHY' && !m.status.includes('HEALTHY')) return false;
+                    if (statusFilter === 'DEGRADED' && !m.status.includes('DEGRADED')) return false;
+                    if (statusFilter === 'FAILED' && !m.status.includes('FAILED')) return false;
+                    if (statusFilter === 'UNKNOWN' && !m.status.includes('UNKNOWN')) return false;
+                }
+                if (providerFilter !== 'ALL' && m.provider_id !== providerFilter) return false;
+                if (costFilter === 'FREE' && !m.is_free) return false;
+                if (costFilter === 'PAID' && m.is_free) return false;
+                return true;
+            });
+
+            const tbody = document.getElementById('modelMatrixBody');
+            if (filtered.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="10" style="text-align:center; color: var(--text-dim);">No models matching filter criteria.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(m => {
+                let statusBadge = `<span class="badge badge-unknown">${m.status}</span>`;
+                if (m.status.includes('HEALTHY')) statusBadge = `<span class="badge badge-healthy">${m.status}</span>`;
+                if (m.status.includes('DEGRADED')) statusBadge = `<span class="badge badge-degraded">${m.status}</span>`;
+                if (m.status.includes('FAILED')) statusBadge = `<span class="badge badge-failed">${m.status}</span>`;
+
+                const costBadge = m.is_free ? `<span class="badge badge-free">Free</span>` : `<span class="badge badge-paid">Paid</span>`;
+                const rolesHtml = (m.roles || '').split(',').filter(r => r).map(r => `<span class="badge badge-role">${r}</span>`).join(' ') || '-';
+                const ctx = m.context_length ? (Math.round(m.context_length / 1024) + 'k') : '-';
+
+                return `
+                    <tr>
+                        <td style="font-family: var(--font-mono); font-weight: 700; color: #fff;">${m.id}</td>
+                        <td style="color: var(--text-muted); font-size: 0.8rem;">${m.provider_id}</td>
+                        <td>${statusBadge}</td>
+                        <td style="font-weight: 700; font-family: var(--font-mono); color: #38bdf8;">${m.score || 0}</td>
+                        <td>${rolesHtml}</td>
+                        <td style="font-family: var(--font-mono);">${ctx}</td>
+                        <td>${costBadge}</td>
+                        <td style="font-family: var(--font-mono);">${m.latency ? m.latency + 'ms' : '-'}</td>
+                        <td style="color: var(--text-dim); font-size: 0.75rem;">${m.last_tested ? new Date(m.last_tested).toLocaleTimeString() : 'Never'}</td>
+                        <td style="text-align: right; white-space: nowrap;">
+                            <button class="sm" onclick="testSingleModel('${encodeURIComponent(m.id)}')">⚡ Ping</button>
+                            <button class="sm" onclick="openModelEditModal('${encodeURIComponent(m.id)}')">✏️ Roles</button>
+                            <button class="sm primary" onclick="launchPlaygroundWithModel('${m.id}')">💬 Chat</button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function renderOverviewPulse() {
+            // Pulse list
+            const pulseEl = document.getElementById('ovProviderPulseList');
+            pulseEl.innerHTML = allProviders.map(p => {
+                const isOnline = p.enabled && p.has_key;
+                const statusDot = isOnline 
+                    ? `<span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--healthy); box-shadow:0 0 6px var(--healthy);"></span>`
+                    : `<span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:var(--unknown);"></span>`;
+                
+                return `
+                    <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.02); padding:10px 14px; border-radius:8px; border:1px solid var(--border);">
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            ${statusDot}
+                            <span style="font-weight:600; color:#fff;">${p.name}</span>
+                            <span style="font-size:0.75rem; color:var(--text-dim);">(${p.healthy_models || 0} healthy / ${p.total_models || 0} models)</span>
+                        </div>
+                        <div style="font-family:var(--font-mono); font-size:0.8rem; color:${p.avg_latency ? '#38bdf8' : 'var(--text-dim)'};">
+                            ${p.avg_latency ? p.avg_latency + 'ms' : '-'}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            // Top models
+            const topBody = document.getElementById('ovTopModelsBody');
+            const top = allModels.filter(m => m.status.includes('HEALTHY')).slice(0, 5);
+            if (top.length === 0) {
+                topBody.innerHTML = `<tr><td colspan="8" style="text-align:center; color: var(--text-dim);">No healthy models detected. Run "Test Health" to verify.</td></tr>`;
+                return;
+            }
+
+            topBody.innerHTML = top.map(m => `
+                <tr>
+                    <td style="font-family: var(--font-mono); font-weight: 700; color: #fff;">${m.id}</td>
+                    <td style="color: var(--text-muted);">${m.provider_id}</td>
+                    <td><span class="badge badge-healthy">${m.status}</span></td>
+                    <td style="font-weight:700; color:#38bdf8;">${m.score || 0}</td>
+                    <td style="font-family: var(--font-mono);">${m.latency ? m.latency + 'ms' : '-'}</td>
+                    <td>${(m.roles || '').split(',').map(r => `<span class="badge badge-role">${r}</span>`).join(' ') || '-'}</td>
+                    <td>${m.is_free ? `<span class="badge badge-free">Free</span>` : `<span class="badge badge-paid">Paid</span>`}</td>
+                    <td><button class="sm primary" onclick="launchPlaygroundWithModel('${m.id}')">💬 Test</button></td>
+                </tr>
+            `).join('');
+        }
+
+        function renderProvidersUI() {
+            const grid = document.getElementById('providersGrid');
+            grid.innerHTML = allProviders.map(p => `
+                <div class="card">
+                    <div class="card-header">
+                        <div>
+                            <div class="card-title">${p.name}</div>
+                            <div style="font-size: 0.75rem; color: var(--text-dim); font-family: var(--font-mono);">${p.id}</div>
+                        </div>
+                        <label class="switch">
+                            <input type="checkbox" ${p.enabled ? 'checked' : ''} onchange="toggleProvider('${p.id}', this.checked)">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+
+                    <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px; word-break: break-all;">
+                        <span style="color: var(--text-dim);">Endpoint:</span> ${p.base_url}
+                    </div>
+
+                    <div style="display: flex; gap: 8px; align-items: center; margin-bottom: 14px;">
+                        <input type="password" id="pkey_${p.id}" placeholder="${p.has_key ? '•••••••• (Configured)' : 'Enter API Key'}" style="flex:1;">
+                        <button class="sm" onclick="saveProviderKey('${p.id}', '${p.name}', '${p.base_url}')">Save</button>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.02); padding: 8px 12px; border-radius: 6px; font-size: 0.75rem; margin-bottom: 12px;">
+                        <div>Models: <strong style="color:#fff;">${p.total_models || 0}</strong> (<span style="color:var(--healthy);">${p.healthy_models || 0} healthy</span>)</div>
+                        <div>Ping: <strong style="color:#38bdf8;">${p.avg_latency ? p.avg_latency + 'ms' : '-'}</strong></div>
+                    </div>
+
+                    <div style="display: flex; gap: 6px;">
+                        <button class="sm" onclick="testProviderConnection('${p.id}')" style="flex:1;">📡 Ping</button>
+                        <button class="sm primary" onclick="discoverProviderModels('${p.id}')" style="flex:1;">🔍 Discover</button>
+                        ${!['openrouter', 'cerebras', 'groq', 'mistral', 'huggingface', 'together', 'google'].includes(p.id) ? `<button class="sm danger" onclick="deleteProvider('${p.id}')">🗑️</button>` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderAliasesUI() {
+            const grid = document.getElementById('aliasesGrid');
+            grid.innerHTML = allAliases.map(a => `
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-title" style="color: #818cf8; font-family: var(--font-mono);">${a.alias}</div>
+                        <span class="badge badge-role">${a.routing_mode || 'BALANCED'}</span>
+                    </div>
+                    <div style="font-size: 0.85rem; margin-bottom: 10px;">
+                        <span style="color: var(--text-dim);">Target Role:</span> <strong>${a.role || 'Any Role'}</strong>
+                    </div>
+                    <div style="font-size: 0.85rem; margin-bottom: 14px;">
+                        <span style="color: var(--text-dim);">Fixed Model Override:</span> 
+                        <code style="color: #38bdf8;">${a.target_model_id || 'Dynamic Fallback'}</code>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <button class="sm" onclick="openEditAliasModal('${a.alias}', '${a.target_model_id || ''}', '${a.role || ''}', '${a.routing_mode}')">✏️ Edit</button>
+                        <button class="sm primary" onclick="launchPlaygroundWithModel('${a.alias}')">💬 Test Alias</button>
+                        ${!['omni-fast', 'omni-code', 'omni-reason'].includes(a.alias) ? `<button class="sm danger" onclick="deleteAlias('${a.alias}')">🗑️</button>` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderProviderFilter() {
+            const sel = document.getElementById('modelProviderFilter');
+            sel.innerHTML = `<option value="ALL">All Providers</option>` + 
+                allProviders.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+        }
+
+        function populateModelDropdowns() {
+            const usable = allModels.map(m => `<option value="${m.id}">${m.id} (${m.provider_id})</option>`).join('');
+            
+            const pgSel = document.getElementById('pgModelSelect');
+            pgSel.innerHTML = `
+                <optgroup label="Virtual Smart Aliases">
+                    <option value="omni-fast">⚡ omni-fast (Fastest Model)</option>
+                    <option value="omni-code">💻 omni-code (Coding Specialist)</option>
+                    <option value="omni-reason">🧠 omni-reason (Reasoning Specialist)</option>
+                    <option value="omni-vision">👁️ omni-vision (Multimodal / Vision)</option>
+                    <option value="omni-agent">🤖 omni-agent (Autonomous Agent)</option>
+                    <option value="omni-free">🆓 omni-free (Free Tier Models)</option>
+                    <option value="omni-best">⭐ omni-best (Highest Scoring)</option>
+                </optgroup>
+                <optgroup label="Direct Models">
+                    ${usable}
+                </optgroup>
+            `;
+
+            document.getElementById('arenaModelA').innerHTML = pgSel.innerHTML;
+            document.getElementById('arenaModelB').innerHTML = pgSel.innerHTML;
+            document.getElementById('benchTargetModel').innerHTML = `<option value="">Select Model to Benchmark...</option>` + usable;
+        }
+
+        // ============================================================
+        // ACTIONS & HANDLERS
+        // ============================================================
+
+        async function runGlobalDiscovery() {
+            showToast('Discovering models across all enabled providers...', 'info');
+            try {
+                const res = await fetch('/api/admin/discover', { method: 'POST' });
+                const data = await res.json();
+                showToast('Discovery complete! Updating model list.', 'success');
+                await fetchModels();
+                await fetchProviders();
+            } catch (e) {
+                showToast('Discovery error: ' + e.message, 'error');
+            }
+        }
+
+        let healthPollInterval = null;
+
+        async function runGlobalHealthCheck() {
+            showToast('Initiating high-speed batch health check for all models...', 'info');
+            try {
+                const res = await fetch('/api/admin/health', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ type: 'all', concurrency: 8 })
+                });
+                const data = await res.json();
+                showToast(data.message || 'Health check running in background.', 'success');
+                startHealthPolling();
+            } catch (e) {
+                showToast('Health check error: ' + e.message, 'error');
+            }
+        }
+
+        function startHealthPolling() {
+            const banner = document.getElementById('healthJobBanner');
+            if (banner) banner.style.display = 'block';
+
+            if (healthPollInterval) clearInterval(healthPollInterval);
+
+            healthPollInterval = setInterval(async () => {
+                try {
+                    const res = await fetch('/api/admin/health/status');
+                    const job = await res.json();
+
+                    if (!job.total) return;
+
+                    const percent = job.total > 0 ? Math.round((job.tested / job.total) * 100) : 0;
+                    document.getElementById('healthJobCounters').innerText = `${job.tested} / ${job.total} tested (${percent}%)`;
+                    document.getElementById('healthJobProgressBar').style.width = `${percent}%`;
+                    document.getElementById('healthJobStats').innerText = `🟢 ${job.healthy} Healthy | 🟡 ${job.degraded} Degraded | 🔴 ${job.failed} Failed`;
+                    document.getElementById('healthJobCurrent').innerText = job.running ? `Testing: ${job.currentModel}` : 'Complete';
+
+                    fetchModels();
+
+                    if (!job.running && job.completedAt) {
+                        clearInterval(healthPollInterval);
+                        healthPollInterval = null;
+                        showToast(`Health check complete! ${job.healthy} healthy models discovered.`, 'success');
+                        setTimeout(() => {
+                            if (banner) banner.style.display = 'none';
+                        }, 5000);
+                    }
+                } catch (e) {
+                    console.error("Health poll error", e);
+                }
+            }, 1500);
+        }
+
+        async function testSingleModel(encodedId) {
+            const id = decodeURIComponent(encodedId);
+            showToast(`Testing health of ${id}...`, 'info');
+            try {
+                const res = await fetch(`/api/models/${encodedId}/test`, { method: 'POST' });
+                const data = await res.json();
+                if (data.success) {
+                    showToast(`✅ ${id} is HEALTHY (${data.latency}ms)`, 'success');
+                } else {
+                    showToast(`⚠️ ${id} check failed: ${data.error}`, 'error');
+                }
+                fetchModels();
+            } catch (e) {
+                showToast('Test failed: ' + e.message, 'error');
+            }
+        }
+
+        async function testFilteredModels() {
+            showToast('Triggering batch test on filtered models...', 'info');
+            await runGlobalHealthCheck();
+        }
+
+        async function toggleProvider(id, enabled) {
+            try {
+                await fetch(`/api/providers/${id}/toggle`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ enabled })
+                });
+                showToast(`Provider ${id} ${enabled ? 'enabled' : 'disabled'}.`, 'info');
+                fetchProviders();
+            } catch (e) {
+                showToast('Failed to toggle provider', 'error');
+            }
+        }
+
+        async function saveProviderKey(id, name, baseUrl) {
+            const key = document.getElementById(`pkey_${id}`).value;
+            try {
+                await fetch('/api/providers', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id, name, base_url: baseUrl, api_key: key })
+                });
+                showToast(`API Key saved for ${name}`, 'success');
+                fetchProviders();
+            } catch (e) {
+                showToast('Failed to save key', 'error');
+            }
+        }
+
+        async function testProviderConnection(id) {
+            showToast(`Testing connection to ${id}...`, 'info');
+            try {
+                const res = await fetch(`/api/providers/${id}/test`, { method: 'POST' });
+                const data = await res.json();
+                if (data.success) {
+                    showToast(`✅ ${data.message} (${data.latency}ms)`, 'success');
+                } else {
+                    showToast(`❌ Connection failed: ${data.error}`, 'error');
+                }
+            } catch (e) {
+                showToast('Test request failed: ' + e.message, 'error');
+            }
+        }
+
+        async function discoverProviderModels(id) {
+            showToast(`Discovering models for ${id}...`, 'info');
+            try {
+                const res = await fetch(`/api/providers/${id}/discover`, { method: 'POST' });
+                const data = await res.json();
+                if (data.success) {
+                    showToast(`Discovered ${data.count} models for ${id}!`, 'success');
+                    fetchModels();
+                    fetchProviders();
+                } else {
+                    showToast(`Discovery failed: ${data.error}`, 'error');
+                }
+            } catch (e) {
+                showToast('Discovery request failed: ' + e.message, 'error');
+            }
+        }
+
+        async function deleteProvider(id) {
+            if (!confirm(`Delete provider '${id}' and all its models?`)) return;
+            try {
+                await fetch(`/api/providers/${id}`, { method: 'DELETE' });
+                showToast(`Provider '${id}' deleted.`, 'info');
+                fetchProviders();
+                fetchModels();
+            } catch (e) {
+                showToast('Delete error: ' + e.message, 'error');
+            }
+        }
+
+        function openAddProviderModal() {
+            document.getElementById('provIdInput').value = '';
+            document.getElementById('provNameInput').value = '';
+            document.getElementById('provUrlInput').value = '';
+            document.getElementById('provKeyInput').value = '';
+            openModal('providerModal');
+        }
+
+        async function saveProviderForm() {
+            const id = document.getElementById('provIdInput').value.trim();
+            const name = document.getElementById('provNameInput').value.trim();
+            const baseUrl = document.getElementById('provUrlInput').value.trim();
+            const apiKey = document.getElementById('provKeyInput').value.trim();
+
+            if (!id || !name || !baseUrl) return showToast('Please fill all required fields.', 'error');
+
+            try {
+                const res = await fetch('/api/providers', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id, name, base_url: baseUrl, api_key: apiKey })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showToast('Provider added!', 'success');
+                    closeModal('providerModal');
+                    fetchProviders();
+                }
+            } catch (e) {
+                showToast('Failed to save provider: ' + e.message, 'error');
+            }
+        }
+
+        // ============================================================
+        // ROUTE SIMULATOR & ALIASES
+        // ============================================================
+
+        async function simulateRouting() {
+            const model = document.getElementById('simAliasSelect').value;
+            const box = document.getElementById('simResultBox');
+            box.innerText = `Simulating routing for: ${model} ...`;
+
+            try {
+                const res = await fetch('/api/routing/simulate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ model })
+                });
+                const sim = await res.json();
+
+                let out = `⚡ ROUTING DECISION FOR: "${sim.requested}"\n`;
+                out += `──────────────────────────────────────────────\n`;
+                if (sim.resolvedModel) {
+                    out += `✅ Selected Primary Model: ${sim.resolvedModel.id}\n`;
+                    out += `   Provider:              ${sim.resolvedModel.provider_id} (${sim.providerConfigured ? '🟢 Active' : '🔴 Unconfigured'})\n`;
+                    out += `   Status / Latency:      ${sim.resolvedModel.status} | ${sim.resolvedModel.latency || 0}ms\n`;
+                    out += `   Roles / Score:         ${sim.resolvedModel.roles || 'GENERAL'} | Score: ${sim.resolvedModel.score || 0}\n`;
+                } else {
+                    out += `❌ No matching healthy model found for this alias/role!\n`;
+                }
+                out += `\n🛡️ Prospective Fallback Chain:\n`;
+                if (sim.fallbackChain && sim.fallbackChain.length > 0) {
+                    sim.fallbackChain.forEach((f, i) => {
+                        out += `   [Fallback ${i+1}] -> ${f.id} (${f.provider_id}) | Score: ${f.score} | ${f.latency || 0}ms\n`;
+                    });
+                } else {
+                    out += `   (No additional fallbacks available in pool)\n`;
+                }
+                box.innerText = out;
+            } catch (e) {
+                box.innerText = `Simulation Error: ${e.message}`;
+            }
+        }
+
+        function openAddAliasModal() {
+            document.getElementById('aliasNameInput').value = '';
+            document.getElementById('aliasTargetModelInput').value = '';
+            openModal('aliasModal');
+        }
+
+        function openEditAliasModal(alias, targetId, role, mode) {
+            document.getElementById('aliasNameInput').value = alias;
+            document.getElementById('aliasTargetModelInput').value = targetId;
+            document.getElementById('aliasRoleInput').value = role || '';
+            document.getElementById('aliasModeInput').value = mode || 'BALANCED';
+            openModal('aliasModal');
+        }
+
+        async function saveAliasForm() {
+            const alias = document.getElementById('aliasNameInput').value.trim();
+            const target = document.getElementById('aliasTargetModelInput').value.trim();
+            const role = document.getElementById('aliasRoleInput').value;
+            const mode = document.getElementById('aliasModeInput').value;
+
+            if (!alias) return showToast('Alias name required', 'error');
+
+            try {
+                await fetch('/api/aliases', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ alias, target_model_id: target, role, routing_mode: mode })
+                });
+                showToast(`Alias '${alias}' saved!`, 'success');
+                closeModal('aliasModal');
+                fetchAliases();
+            } catch (e) {
+                showToast('Failed to save alias', 'error');
+            }
+        }
+
+        async function deleteAlias(alias) {
+            if (!confirm(`Delete alias '${alias}'?`)) return;
+            try {
+                await fetch(`/api/aliases/${alias}`, { method: 'DELETE' });
+                showToast(`Alias '${alias}' removed.`, 'info');
+                fetchAliases();
+            } catch (e) {
+                showToast('Failed to delete alias', 'error');
+            }
+        }
+
+        // ============================================================
+        // PLAYGROUND & ARENA
+        // ============================================================
+
+        function setPlaygroundMode(mode) {
+            if (mode === 'single') {
+                document.getElementById('pgSingleView').style.display = 'grid';
+                document.getElementById('pgArenaView').style.display = 'none';
+                document.getElementById('pgModeSingleBtn').classList.add('primary');
+                document.getElementById('pgModeArenaBtn').classList.remove('primary');
+            } else {
+                document.getElementById('pgSingleView').style.display = 'none';
+                document.getElementById('pgArenaView').style.display = 'block';
+                document.getElementById('pgModeSingleBtn').classList.remove('primary');
+                document.getElementById('pgModeArenaBtn').classList.add('primary');
+            }
+        }
+
+        function launchPlaygroundWithModel(modelId) {
+            switchTab('tab-playground');
+            setPlaygroundMode('single');
+            document.getElementById('pgModelSelect').value = modelId;
+        }
+
+        function applyPersonaToPlayground() {
+            const personaId = document.getElementById('pgPersonaSelect').value;
+            const p = allPersonas.find(x => x.id === personaId);
+            if (p) {
+                document.getElementById('pgSystemPrompt').value = p.prompt;
+                showToast(`Applied persona: ${p.name}`, 'info');
+            }
+        }
+
+        // Theme Toggle
+        function toggleTheme() {
+            const isLight = document.body.classList.toggle('theme-light');
+            const btn = document.getElementById('themeToggleBtn');
+            btn.innerText = isLight ? '☀️ Light' : '🌙 Dark';
+            localStorage.setItem('ai_cc_theme', isLight ? 'light' : 'dark');
+            showToast(`Switched to ${isLight ? 'Light' : 'Dark'} theme`, 'info');
+        }
+
+        function initTheme() {
+            const saved = localStorage.getItem('ai_cc_theme');
+            if (saved === 'light') {
+                document.body.classList.add('theme-light');
+                const btn = document.getElementById('themeToggleBtn');
+                if (btn) btn.innerText = '☀️ Light';
+            }
+        }
+
+        // Backup State Download
+        function downloadStateBackup() {
+            window.location.href = '/api/admin/export';
+            showToast('Downloading Command Center backup...', 'success');
+        }
+
+        // RAG Settings Toggle in Playground
+        function toggleRagSettings() {
+            const checked = document.getElementById('pgUseRagCheckbox').checked;
+            document.getElementById('pgRagDocSelect').style.display = checked ? 'inline-block' : 'none';
+            if (checked) {
+                showToast('RAG Knowledge Retrieval active for chat', 'success');
+            }
+        }
+
+        // AI Prompt Optimizer
+        async function optimizeCurrentPrompt() {
+            const input = document.getElementById('pgChatInput');
+            const prompt = input.value.trim();
+            if (!prompt) return showToast('Enter a prompt in the chat box first to optimize.', 'error');
+
+            showToast('Optimizing prompt with AI...', 'info');
+            try {
+                const res = await fetch('/api/playground/optimize-prompt', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prompt })
+                });
+                const data = await res.json();
+                if (data.success && data.optimized) {
+                    input.value = data.optimized;
+                    showToast('Prompt optimized & structured!', 'success');
+                }
+            } catch (e) {
+                showToast('Prompt optimization failed: ' + e.message, 'error');
+            }
+        }
+
+        async function sendPlaygroundChat() {
+            const input = document.getElementById('pgChatInput');
+            const text = input.value.trim();
+            if (!text) return;
+
+            const model = document.getElementById('pgModelSelect').value;
+            const systemPrompt = document.getElementById('pgSystemPrompt').value;
+            const temperature = document.getElementById('pgTemp').value;
+            const maxTokens = document.getElementById('pgMaxTokens').value;
+            const useRag = document.getElementById('pgUseRagCheckbox').checked;
+            const ragDocId = document.getElementById('pgRagDocSelect').value;
+
+            // Render User Message
+            const msgBox = document.getElementById('pgChatMessages');
+            msgBox.innerHTML += `<div class="chat-msg user">${escapeHtml(text)}</div>`;
+            playgroundMessages.push({ role: 'user', content: text });
+            input.value = '';
+            msgBox.scrollTop = msgBox.scrollHeight;
+
+            const sendBtn = document.getElementById('pgSendBtn');
+            sendBtn.innerText = 'Thinking...';
+            sendBtn.disabled = true;
+
+            try {
+                const res = await fetch('/api/playground/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        model,
+                        messages: playgroundMessages,
+                        systemPrompt,
+                        temperature,
+                        max_tokens: maxTokens,
+                        useRag,
+                        ragDocId
+                    })
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    let assistantHtml = `<div class="chat-msg assistant">${escapeHtml(data.content)}`;
+                    
+                    // If RAG sources were retrieved, render citation box
+                    if (data.ragSources && data.ragSources.length > 0) {
+                        assistantHtml += `<div style="margin-top: 10px; padding: 8px 12px; background: rgba(99,102,241,0.08); border: 1px solid rgba(99,102,241,0.25); border-radius: 8px; font-size: 0.78rem;">
+                            <div style="font-weight: 700; color: #818cf8; margin-bottom: 6px;">📚 Retrieved Sources (RAG Engine):</div>
+                            <div style="display: flex; flex-direction: column; gap: 6px;">
+                                ${data.ragSources.map((s, i) => `
+                                    <div style="background: rgba(0,0,0,0.2); padding: 6px 10px; border-radius: 6px;">
+                                        <div style="display: flex; justify-content: space-between; margin-bottom: 2px;">
+                                            <span style="font-weight: 600; color: #38bdf8;">📄 ${s.filename}</span>
+                                            <span class="badge badge-role">${s.confidence}% Match</span>
+                                        </div>
+                                        <div style="color: var(--text-muted); font-size: 0.75rem; white-space: pre-wrap;">"${escapeHtml(s.content.substring(0, 160))}..."</div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>`;
+                    }
+
+                    assistantHtml += `</div>`;
+                    msgBox.innerHTML += assistantHtml;
+                    playgroundMessages.push({ role: 'assistant', content: data.content });
+                    document.getElementById('pgTelemetry').innerText = `Latency: ${data.duration}ms | Routed To: ${data.routedModel} ${data.ragSources && data.ragSources.length ? `| RAG: ${data.ragSources.length} sources` : ''}`;
+                } else {
+                    msgBox.innerHTML += `<div class="chat-msg system">❌ Error: ${escapeHtml(data.error)}</div>`;
+                }
+            } catch (e) {
+                msgBox.innerHTML += `<div class="chat-msg system">❌ Request Failed: ${escapeHtml(e.message)}</div>`;
+            } finally {
+                sendBtn.innerText = 'Send';
+                sendBtn.disabled = false;
+                msgBox.scrollTop = msgBox.scrollHeight;
+                fetchStats();
+            }
+        }
+
+        function clearPlaygroundChat() {
+            playgroundMessages = [];
+            document.getElementById('pgChatMessages').innerHTML = `
+                <div class="chat-msg system">💡 Chat cleared. Ready for new prompt.</div>
+            `;
+        }
+
+        async function runArenaDuel() {
+            const prompt = document.getElementById('arenaPromptInput').value.trim();
+            if (!prompt) return showToast('Please enter a prompt for the duel.', 'error');
+
+            const modelA = document.getElementById('arenaModelA').value;
+            const modelB = document.getElementById('arenaModelB').value;
+            const outA = document.getElementById('arenaOutputA');
+            const outB = document.getElementById('arenaOutputB');
+            const runBtn = document.getElementById('arenaRunBtn');
+
+            outA.innerText = `[Running ${modelA}...]`;
+            outB.innerText = `[Running ${modelB}...]`;
+            runBtn.innerText = 'Dueling...';
+            runBtn.disabled = true;
+
+            try {
+                const res = await fetch('/api/playground/compare', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ modelA, modelB, prompt })
+                });
+                const data = await res.json();
+
+                if (data.modelA.success) {
+                    outA.innerText = data.modelA.content;
+                    document.getElementById('arenaStatsA').innerText = `⏱️ ${data.modelA.duration}ms | Routed: ${data.modelA.routedModel}`;
+                } else {
+                    outA.innerText = `❌ Error: ${data.modelA.error}`;
+                }
+
+                if (data.modelB.success) {
+                    outB.innerText = data.modelB.content;
+                    document.getElementById('arenaStatsB').innerText = `⏱️ ${data.modelB.duration}ms | Routed: ${data.modelB.routedModel}`;
+                } else {
+                    outB.innerText = `❌ Error: ${data.modelB.error}`;
+                }
+            } catch (e) {
+                outA.innerText = `Duel failed: ${e.message}`;
+                outB.innerText = `Duel failed: ${e.message}`;
+            } finally {
+                runBtn.innerText = '⚔️ Duel Models';
+                runBtn.disabled = false;
+                fetchStats();
+            }
+        }
+
+        // ============================================================
+        // BENCHMARK LAB
+        // ============================================================
+
+        async function runSelectedBenchmark() {
+            const modelId = document.getElementById('benchTargetModel').value;
+            if (!modelId) return showToast('Select a model to benchmark first.', 'error');
+
+            const consoleBox = document.getElementById('benchConsole');
+            const btn = document.getElementById('benchRunBtn');
+            btn.innerText = 'Benchmarking...';
+            btn.disabled = true;
+
+            consoleBox.innerText = `[BENCHMARK INITIATED] Target: ${modelId}\nExecuting 5-Task Evaluation Suite...\n\n`;
+
+            try {
+                const res = await fetch('/api/admin/benchmark', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ modelId })
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    consoleBox.innerText = data.result.report;
+                    showToast(`Benchmark completed! Score: ${data.result.totalScore}/100`, 'success');
+                    fetchBenchmarkHistory();
+                    fetchModels();
+                } else {
+                    consoleBox.innerText += `\n❌ Benchmark Failed: ${data.error}`;
+                    showToast('Benchmark failed', 'error');
+                }
+            } catch (e) {
+                consoleBox.innerText += `\n❌ Benchmark Request Error: ${e.message}`;
+            } finally {
+                btn.innerText = '🧪 Run Full Benchmark';
+                btn.disabled = false;
+            }
+        }
+
+        async function fetchBenchmarkHistory() {
+            try {
+                const res = await fetch('/api/benchmarks/history');
+                const history = await res.json();
+                const tbody = document.getElementById('benchHistoryBody');
+
+                if (history.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color: var(--text-dim);">No benchmark records yet.</td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = history.map(h => `
+                    <tr>
+                        <td style="font-family: var(--font-mono); font-weight:700; color:#fff;">${h.model_id}</td>
+                        <td><strong style="color:var(--healthy);">${h.overall_score || 0} / 100</strong></td>
+                        <td>${h.coding_score || 0}%</td>
+                        <td>${h.reasoning_score || 0}%</td>
+                        <td style="font-family: var(--font-mono);">${h.avg_latency || 0}ms</td>
+                        <td style="font-family: var(--font-mono); color:var(--text-dim); font-size:0.75rem;">${h.created_at ? new Date(h.created_at).toLocaleTimeString() : '-'}</td>
+                    </tr>
+                `).join('');
+            } catch (e) {
+                console.error("Failed to fetch benchmark history", e);
+            }
+        }
+
+        // ============================================================
+        // PROVIDER DOCTOR
+        // ============================================================
+
+        async function runProviderDoctor() {
+            const tableBody = document.getElementById('docReportTableBody');
+            tableBody.innerHTML = `<tr><td colspan="6" style="text-align:center; color: var(--text-dim);">Running diagnostic scan...</td></tr>`;
+
+            try {
+                const res = await fetch('/api/admin/doctor');
+                const doc = await res.json();
+
+                document.getElementById('docOverallStatus').innerText = doc.overallStatus;
+                document.getElementById('docOverallStatus').style.color = doc.overallStatus.includes('OPERATIONAL') ? 'var(--healthy)' : 'var(--degraded)';
+                document.getElementById('docHealthyRatio').innerText = `Health Ratio: ${doc.stats.healthyRatio}% (${doc.stats.healthyModels}/${doc.stats.totalModels})`;
+                document.getElementById('docProviderCount').innerText = `${doc.stats.totalProviders} Active`;
+                document.getElementById('docRecCount').innerText = `${doc.recommendedPool.length} Models`;
+
+                tableBody.innerHTML = doc.providers.map(p => `
+                    <tr>
+                        <td style="font-weight:700; color:#fff;">${p.name}</td>
+                        <td>${p.hasKey ? '✅ Configured' : '❌ Missing'}</td>
+                        <td>${p.reachable ? '<span class="badge badge-healthy">🟢 Reachable</span>' : '<span class="badge badge-failed">🔴 Unreachable</span>'}</td>
+                        <td style="font-family:var(--font-mono);">${p.latency ? p.latency + 'ms' : '-'}</td>
+                        <td style="font-family:var(--font-mono);">${p.modelsFound} models</td>
+                        <td style="color:${p.error ? 'var(--failed)' : 'var(--text-muted)'}; font-size:0.8rem;">
+                            ${p.error ? p.error : 'Operating normally'}
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (e) {
+                tableBody.innerHTML = `<tr><td colspan="6" style="text-align:center; color: var(--failed);">Doctor scan failed: ${e.message}</td></tr>`;
+            }
+        }
+
+        // ============================================================
+        // KNOWLEDGE BASE & RAG SEARCH
+        // ============================================================
+
+        function initiateDriveAuth() {
+            window.open('/api/drive/auth', '_blank');
+            const poll = setInterval(async () => {
+                const res = await fetch('/api/drive/status');
+                const data = await res.json();
+                if (data.isConnected) {
+                    clearInterval(poll);
+                    fetchDriveStatus();
+                    showToast('Google Drive connected successfully!', 'success');
+                }
+            }, 2500);
+        }
+
+        async function fetchKnowledgeDocs() {
+            try {
+                const res = await fetch('/api/knowledge/documents');
+                const docs = await res.json();
+                const tbody = document.getElementById('kbDocTableBody');
+
+                // Populate RAG dropdowns in Playground and Search sandbox
+                const ragSel = document.getElementById('pgRagDocSelect');
+                const ragSearchFilter = document.getElementById('ragSearchDocFilter');
+                
+                const optionsHtml = `<option value="ALL">All Documents (RAG)</option>` + 
+                    docs.map(d => `<option value="${d.id}">${d.filename}</option>`).join('');
+                
+                if (ragSel) ragSel.innerHTML = optionsHtml;
+                if (ragSearchFilter) ragSearchFilter.innerHTML = `<option value="ALL">All Documents</option>` + docs.map(d => `<option value="${d.id}">${d.filename}</option>`).join('');
+
+                if (docs.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color: var(--text-dim);">No documents uploaded yet.</td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = docs.map(d => `
+                    <tr>
+                        <td style="font-weight:600; color:#fff;">📄 ${d.filename}</td>
+                        <td>${Math.round(d.size / 1024)} KB</td>
+                        <td><span class="badge badge-role">${d.chunk_count || 0} chunks</span></td>
+                        <td style="font-family:var(--font-mono); color:var(--text-muted); font-size:0.8rem;">${d.drive_id || 'Local Cache'}</td>
+                        <td style="font-size:0.75rem; color:var(--text-dim);">${new Date(d.uploaded_at).toLocaleDateString()}</td>
+                        <td style="text-align:right;">
+                            <button class="sm danger" onclick="deleteKnowledgeDoc('${d.id}')">🗑️</button>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (e) {
+                console.error("Failed to fetch documents", e);
+            }
+        }
+
+        async function executeRagSearch() {
+            const query = document.getElementById('ragSearchQuery').value.trim();
+            if (!query) return showToast('Enter a search query or question.', 'error');
+
+            const docId = document.getElementById('ragSearchDocFilter').value;
+            const box = document.getElementById('ragSearchResultsBox');
+            box.innerHTML = `<div style="color:var(--text-dim); padding:10px;">Searching indexed chunks...</div>`;
+
+            try {
+                const res = await fetch('/api/knowledge/rag-search', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query, docId, topK: 4 })
+                });
+                const data = await res.json();
+
+                if (!data.matches || data.matches.length === 0) {
+                    box.innerHTML = `<div style="color:var(--text-dim); padding:16px; text-align:center; border:1px dashed var(--border); border-radius:8px;">No relevant chunks found for query "${escapeHtml(query)}". Try different keywords.</div>`;
+                    return;
+                }
+
+                box.innerHTML = data.matches.map((m, i) => `
+                    <div style="background: rgba(255,255,255,0.02); padding: 12px 16px; border-radius: 8px; border: 1px solid var(--border);">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                            <span style="font-weight:700; color:#38bdf8;">📄 ${m.filename} (Chunk #${m.chunkIndex + 1})</span>
+                            <span class="badge badge-role">${m.confidence}% Relevance</span>
+                        </div>
+                        <div style="font-family:var(--font-mono); font-size:0.8rem; color:var(--text-muted); white-space:pre-wrap; line-height:1.5;">${escapeHtml(m.content)}</div>
+                    </div>
+                `).join('');
+            } catch (e) {
+                box.innerHTML = `<div style="color:var(--failed); padding:10px;">RAG Search error: ${e.message}</div>`;
+            }
+        }
+
+        async function uploadKnowledgeDoc() {
+            const fileInput = document.getElementById('kbFileInput');
+            if (!fileInput.files.length) return showToast('Please select a file to upload.', 'error');
+
+            const btn = document.getElementById('kbUploadBtn');
+            btn.innerText = 'Indexing & Uploading...';
+            btn.disabled = true;
+
+            const formData = new FormData();
+            formData.append('document', fileInput.files[0]);
+
+            try {
+                const res = await fetch('/api/knowledge/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showToast(`Uploaded & indexed into ${data.chunksIndexed || 1} RAG chunks!`, 'success');
+                    fileInput.value = '';
+                    fetchKnowledgeDocs();
+                } else {
+                    showToast('Upload failed: ' + data.error, 'error');
+                }
+            } catch (e) {
+                showToast('Upload error: ' + e.message, 'error');
+            } finally {
+                btn.innerText = '☁️ Upload Document';
+                btn.disabled = false;
+            }
+        }
+
+        async function deleteKnowledgeDoc(id) {
+            if (!confirm('Remove document and its RAG chunks from Knowledge Base?')) return;
+            try {
+                await fetch(`/api/knowledge/documents/${id}`, { method: 'DELETE' });
+                showToast('Document removed', 'info');
+                fetchKnowledgeDocs();
+            } catch (e) {
+                showToast('Delete error: ' + e.message, 'error');
+            }
+        }
+
+        // ============================================================
+        // LOGS & TELEMETRY
+        // ============================================================
+
+        async function fetchLogs() {
+            const status = document.getElementById('logStatusFilter').value;
+            const limit = document.getElementById('logLimitSelect').value;
+
+            try {
+                const res = await fetch(`/api/admin/logs?status=${status}&limit=${limit}`);
+                const logs = await res.json();
+                const tbody = document.getElementById('logsTableBody');
+
+                if (logs.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color: var(--text-dim);">No logs match filter.</td></tr>`;
+                    return;
+                }
+
+                tbody.innerHTML = logs.map(l => {
+                    const statusBadge = l.status === 'SUCCESS' 
+                        ? `<span class="badge badge-healthy">SUCCESS</span>` 
+                        : `<span class="badge badge-failed">${l.status}</span>`;
+
+                    return `
+                        <tr>
+                            <td style="font-family: var(--font-mono); font-size:0.75rem; color:var(--text-dim);">${new Date(l.timestamp).toLocaleTimeString()}</td>
+                            <td style="font-weight:600; color:#fff;">${l.requested_model}</td>
+                            <td style="font-family: var(--font-mono); color:#38bdf8;">${l.routed_model || '-'}</td>
+                            <td>${statusBadge}</td>
+                            <td style="font-family: var(--font-mono);">${l.latency ? l.latency + 'ms' : '-'}</td>
+                            <td style="color:var(--failed); font-size:0.75rem; max-width:280px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                                ${l.error_message || '-'}
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            } catch (e) {
+                console.error("Failed to fetch logs", e);
+            }
+        }
+
+        async function clearLogs() {
+            if (!confirm('Clear all telemetry logs?')) return;
+            try {
+                await fetch('/api/admin/logs/clear', { method: 'POST' });
+                showToast('Telemetry logs cleared.', 'info');
+                fetchLogs();
+                fetchStats();
+            } catch (e) {
+                showToast('Failed to clear logs', 'error');
+            }
+        }
+
+        // ============================================================
+        // MODEL ROLE EDITOR MODAL
+        // ============================================================
+
+        function openModelEditModal(encodedId) {
+            const id = decodeURIComponent(encodedId);
+            const model = allModels.find(m => m.id === id);
+            if (!model) return;
+
+            document.getElementById('editModelId').value = model.id;
+            document.getElementById('editModelRoles').value = model.roles || '';
+            document.getElementById('editModelScore').value = model.score || 0;
+            document.getElementById('editModelFree').value = model.is_free ? '1' : '0';
+            openModal('modelEditModal');
+        }
+
+        async function saveModelEditForm() {
+            const id = document.getElementById('editModelId').value;
+            const roles = document.getElementById('editModelRoles').value.trim();
+            const score = parseInt(document.getElementById('editModelScore').value) || 0;
+            const isFree = document.getElementById('editModelFree').value === '1';
+
+            try {
+                await fetch(`/api/models/${encodeURIComponent(id)}/roles`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ roles, score, is_free: isFree })
+                });
+                showToast(`Model ${id} updated!`, 'success');
+                closeModal('modelEditModal');
+                fetchModels();
+            } catch (e) {
+                showToast('Failed to update model', 'error');
+            }
+        }
+
+        // Helper
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.innerText = text || '';
+            return div.innerHTML;
+        }
+
+        // INITIAL LOAD & AUTO-POLL
+        window.addEventListener('DOMContentLoaded', () => {
+            initTheme();
+            fetchInitialData();
+            // Background telemetry polling every 12 seconds
+            setInterval(() => {
+                fetchStats();
+                if (activeTab === 'tab-overview') fetchModels();
+                if (activeTab === 'tab-logs') fetchLogs();
+            }, 12000);
+        });
+    </script>
+</body>
+</html>

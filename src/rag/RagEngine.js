@@ -1,0 +1,216 @@
+const db = require('../db/database');
+const { v4: uuidv4 } = require('uuid');
+
+class RagEngine {
+    constructor() {
+        this.stopWords = new Set([
+            'a', 'an', 'the', 'is', 'are', 'was', 'were', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by',
+            'from', 'about', 'into', 'over', 'after', 'and', 'or', 'not', 'it', 'this', 'that', 'what', 'how',
+            'why', 'which', 'who', 'when', 'where', 'can', 'could', 'should', 'would', 'do', 'does', 'did', 'be'
+        ]);
+    }
+
+    extractTextFromBuffer(filename, buffer) {
+        if (!buffer || buffer.length === 0) return '';
+        const ext = filename.split('.').pop().toLowerCase();
+
+        if (['txt', 'md', 'json', 'csv', 'js', 'ts', 'py', 'java', 'html', 'css', 'yaml', 'yml'].includes(ext)) {
+            return buffer.toString('utf-8');
+        }
+
+        if (ext === 'pdf') {
+            // Robust lightweight ASCII/Unicode text stream extractor for PDFs
+            const raw = buffer.toString('binary');
+            const textParts = [];
+            
+            // Extract text enclosed in parentheses (standard PDF text strings: (Hello World) Tj)
+            const matches = raw.match(/\(([^)]+)\)\s*(?:Tj|TJ|'|")/g);
+            if (matches) {
+                matches.forEach(m => {
+                    const clean = m.replace(/[()]/g, '').trim();
+                    if (clean.length > 1 && !clean.match(/^[\x00-\x1F]+$/)) {
+                        textParts.push(clean);
+                    }
+                });
+            }
+
+            // Also fallback to printable ASCII runs if stream was encoded
+            if (textParts.length < 5) {
+                const asciiMatches = raw.match(/[a-zA-Z0-9.,;:!?'"()\s-]{4,}/g);
+                if (asciiMatches) {
+                    textParts.push(...asciiMatches.filter(s => s.trim().length > 3));
+                }
+            }
+
+            return textParts.join(' ').replace(/\s+/g, ' ').trim();
+        }
+
+        return buffer.toString('utf-8');
+    }
+
+    chunkText(text, chunkSize = 500, overlap = 80) {
+        if (!text || text.trim().length === 0) return [];
+        const cleanText = text.replace(/\r\n/g, '\n').trim();
+        const chunks = [];
+
+        // Try paragraph-based splitting first
+        const paragraphs = cleanText.split(/\n{2,}/);
+        let currentChunk = '';
+
+        for (const para of paragraphs) {
+            const p = para.trim();
+            if (!p) continue;
+
+            if ((currentChunk + '\n\n' + p).length <= chunkSize) {
+                currentChunk = currentChunk ? currentChunk + '\n\n' + p : p;
+            } else {
+                if (currentChunk) chunks.push(currentChunk);
+                if (p.length > chunkSize) {
+                    // Split long paragraph by sliding window
+                    let start = 0;
+                    while (start < p.length) {
+                        const end = Math.min(start + chunkSize, p.length);
+                        chunks.push(p.substring(start, end).trim());
+                        start += (chunkSize - overlap);
+                    }
+                    currentChunk = '';
+                } else {
+                    currentChunk = p;
+                }
+            }
+        }
+
+        if (currentChunk) chunks.push(currentChunk);
+        return chunks.filter(c => c && c.trim().length > 10);
+    }
+
+    async indexDocument(docId, filename, buffer) {
+        const text = this.extractTextFromBuffer(filename, buffer);
+        if (!text || text.trim().length === 0) {
+            return { success: false, chunkCount: 0, message: "No extractable text found in file." };
+        }
+
+        const chunks = this.chunkText(text);
+        if (chunks.length === 0) {
+            return { success: false, chunkCount: 0, message: "File text too short for chunking." };
+        }
+
+        // Remove any prior chunks for this doc
+        await this.deleteDocumentChunks(docId);
+
+        return new Promise((resolve, reject) => {
+            db.serialize(() => {
+                const stmt = db.prepare(`INSERT INTO document_chunks (id, doc_id, filename, chunk_index, content) VALUES (?, ?, ?, ?, ?)`);
+                chunks.forEach((chunk, idx) => {
+                    const chunkId = uuidv4();
+                    stmt.run(chunkId, docId, filename, idx, chunk);
+                });
+                stmt.finalize((err) => {
+                    if (err) return reject(err);
+                    console.log(`[RAG Engine] Indexed ${chunks.length} chunks for '${filename}'`);
+                    resolve({ success: true, chunkCount: chunks.length, totalCharacters: text.length });
+                });
+            });
+        });
+    }
+
+    tokenize(text) {
+        return (text || '')
+            .toLowerCase()
+            .replace(/[^a-z0-9\s_-]/g, ' ')
+            .split(/\s+/)
+            .filter(t => t.length > 1 && !this.stopWords.has(t));
+    }
+
+    async searchChunks(query, docId = null, topK = 4) {
+        const queryTokens = this.tokenize(query);
+        if (queryTokens.length === 0) {
+            return [];
+        }
+
+        return new Promise((resolve, reject) => {
+            let sql = `SELECT id, doc_id, filename, chunk_index, content FROM document_chunks`;
+            const params = [];
+
+            if (docId && docId !== 'ALL') {
+                sql += ` WHERE doc_id = ?`;
+                params.push(docId);
+            }
+
+            db.all(sql, params, (err, rows) => {
+                if (err) return reject(err);
+                if (!rows || rows.length === 0) return resolve([]);
+
+                const scored = rows.map(chunk => {
+                    const contentLower = chunk.content.toLowerCase();
+                    const chunkTokens = this.tokenize(chunk.content);
+                    const chunkTokenSet = new Set(chunkTokens);
+
+                    let score = 0;
+                    let matches = 0;
+
+                    // 1. Exact phrase bonus
+                    if (contentLower.includes(query.toLowerCase().trim())) {
+                        score += 30;
+                    }
+
+                    // 2. Token overlap & frequency
+                    queryTokens.forEach(token => {
+                        if (chunkTokenSet.has(token)) {
+                            matches++;
+                            // Count occurrences
+                            const count = (contentLower.match(new RegExp('\\b' + token + '\\b', 'g')) || []).length;
+                            score += 10 + Math.min(count * 3, 15);
+                        }
+                    });
+
+                    // 3. Proximity bonus
+                    const matchRatio = matches / queryTokens.length;
+                    score += Math.round(matchRatio * 40);
+
+                    const confidence = Math.min(99, Math.max(15, Math.round(score)));
+
+                    return {
+                        id: chunk.id,
+                        docId: chunk.doc_id,
+                        filename: chunk.filename,
+                        chunkIndex: chunk.chunk_index,
+                        content: chunk.content,
+                        score,
+                        confidence
+                    };
+                });
+
+                // Filter out non-matching chunks and sort descending
+                const results = scored
+                    .filter(c => c.score > 12)
+                    .sort((a, b) => b.score - a.score)
+                    .slice(0, topK);
+
+                resolve(results);
+            });
+        });
+    }
+
+    buildRagContext(chunks) {
+        if (!chunks || chunks.length === 0) return '';
+        let context = "### RETRIEVED KNOWLEDGE BASE EXCERPTS (RAG CONTEXT):\n\n";
+        chunks.forEach((c, idx) => {
+            context += `[Source ${idx + 1}: ${c.filename} | Relevance: ${c.confidence}%]\n`;
+            context += `"""\n${c.content.trim()}\n"""\n\n`;
+        });
+        context += "--------------------------------------------------------\n";
+        context += "INSTRUCTIONS: Answer the user query using the above retrieved document excerpts. Cite the source document name when providing factual details. If the excerpts do not contain the answer, answer based on your knowledge and clearly mention that it was not found in the uploaded documents.";
+        return context;
+    }
+
+    async deleteDocumentChunks(docId) {
+        return new Promise((resolve) => {
+            db.run(`DELETE FROM document_chunks WHERE doc_id = ?`, [docId], (err) => {
+                resolve(!err);
+            });
+        });
+    }
+}
+
+module.exports = new RagEngine();
