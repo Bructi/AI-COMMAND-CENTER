@@ -186,14 +186,86 @@ Open **`http://localhost:3000`** in your browser.
 
 ---
 
-## 🛠️ CLI Shortcuts
+## 🛠️ CLI Shortcuts & Standalone Test Utilities
 
-| Command | Purpose |
-|---|---|
-| `npm start` | Boots the AI Command Center server on `http://localhost:3000`. |
-| `npm run dev` | Starts server with `nodemon` for active development. |
-| `npm run health-check` | Runs a high-speed parallel health audit across all 600+ models. |
-| `node test-router.js` | Smoke test script for `/v1/chat/completions` with virtual aliases. |
+The repository includes standalone CLI testing utilities that can be executed directly in your terminal to verify and audit your AI infrastructure without needing a browser:
+
+| Command | Purpose | How to Run |
+|---|---|---|
+| `npm start` | Boots the AI Command Center server on `http://localhost:3000`. | `npm start` |
+| `npm run dev` | Starts server with `nodemon` for active development. | `npm run dev` |
+| **`test-all-models.js`** | **Batch Health Auditor:** Tests all 600+ models concurrently in the terminal with 15 parallel workers, records live statuses into SQLite, and outputs a ranked latency leaderboard. | `npm run health-check`<br>*(or `node test-all-models.js`)* |
+| **`test-router.js`** | **Router Smoke Test:** Sends an end-to-end verification prompt to `http://localhost:3000/v1/chat/completions` using the `omni-fast` alias to confirm routing & fallback health. | `node test-router.js`<br>*(run while server is up)* |
+
+---
+
+### 🧪 Detailed Usage of Standalone Test Files
+
+#### 1. `test-all-models.js` — High-Speed Terminal Model Auditor
+Use this script whenever you want to perform a deep health check of all models across all enabled providers directly in the terminal.
+
+- **What it does:**
+  - Queries all enabled providers and models directly from `data.db`.
+  - Spawns a pool of 15 asynchronous workers to probe each model concurrently with a lightweight test prompt.
+  - Automatically classifies each model into `🟢 HEALTHY`, `🟡 DEGRADED` (429 Rate Limit), or `🔴 FAILED`.
+  - Updates the SQLite database (`data.db`) in real time with exact round-trip latencies.
+  - Displays a final terminal audit summary and ranked list of verified working models.
+
+- **How to run:**
+  ```bash
+  npm run health-check
+  # or
+  node test-all-models.js
+  ```
+
+- **Sample Terminal Output:**
+  ```text
+  ======================================================
+  ⚡ STARTING COMPREHENSIVE MULTI-MODEL HEALTH TEST
+  ======================================================
+
+  Found 618 models across enabled providers to test.
+
+  [1/618] 🟢 HEALTHY (981ms): mistral/codestral-latest
+  [2/618] 🟢 HEALTHY (1309ms): openrouter/nvidia/nemotron-3-ultra-550b-a55b:free-medium
+  [3/618] 🟢 HEALTHY (2087ms): antigravity/gemini-3.5-flash-lite
+  ...
+  ======================================================
+  📊 FINAL HEALTH AUDIT SUMMARY:
+  Total Models Tested: 618 / 618
+  🟢 HEALTHY Models:   55
+  🟡 DEGRADED Models:  27
+  🔴 FAILED Models:    536
+  ======================================================
+  ```
+
+---
+
+#### 2. `test-router.js` — Live Router Smoke Test
+Use this script to verify that your local OpenAI-compatible API endpoint is up and resolving requests.
+
+- **What it does:**
+  - Sends a test payload to `POST http://localhost:3000/v1/chat/completions`.
+  - Uses the virtual alias `omni-fast` and your configured `COMMAND_CENTER_API_KEY`.
+  - Verifies that the router selects a healthy model, handles the completion, logs the request, and returns a valid OpenAI-compatible response.
+
+- **How to run:**
+  ```bash
+  # Step 1: In one terminal, start the server
+  npm start
+
+  # Step 2: In another terminal, run the smoke test
+  node test-router.js
+  ```
+
+- **Sample Terminal Output:**
+  ```text
+  Sending test request to AI Command Center...
+  ✅ Success! Router responded with:
+  Hello! 😊 How can I help you today?
+
+  ➡️ Now check your Dashboard in the browser!
+  ```
 
 ---
 
